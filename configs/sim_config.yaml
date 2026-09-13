@@ -1,0 +1,26 @@
+# TwinGuard Simulation Configuration
+simulation:
+  model_path: "simulation/models/scene.xml"
+  timestep: 0.002
+  gravity: [0, 0, -9.81]
+  integrator: "RK4"
+
+robot:
+  type: "SO-101"
+  num_arms: 1
+  arm_dof: 6
+  joints:
+    - joint_base_yaw
+    - joint_shoulder_pitch
+    - joint_elbow_pitch
+    - joint_wrist_pitch
+    - joint_wrist_roll
+    - joint_gripper
+
+camera:
+  overview:
+    width: 1280
+    height: 720
+  wrist:
+    width: 640
+    height: 480
