@@ -43,13 +43,16 @@ def test_dual_arm_model_loads(sim):
     assert len(sim.arm_actuators["right_arm"]) == 6
     assert sim.model.nu == 12, f"Expected 12 actuators (6 per arm), got {sim.model.nu}"
 
-    # Verify plate placeholder object exists and has freejoint
+    # Verify scene objects exist and have appropriate joints
     assert "plate_joint" in sim.joint_names
+    assert "mug_joint" in sim.joint_names
+    assert "drawer_joint" in sim.joint_names
 
-    # Total DOFs: 6 (left) + 6 (right) + 6 (plate freejoint) = 18 DOFs (nv)
-    # Total qpos: 6 (left) + 6 (right) + 7 (plate freejoint pos+quat) = 19 qpos (nq)
-    assert sim.model.nv == 18, f"Expected 18 DOFs, got {sim.model.nv}"
-    assert sim.model.nq == 19, f"Expected 19 qpos values, got {sim.model.nq}"
+    # Total DOFs: 6 (left) + 6 (right) + 6 (plate) + 6 (mug) + 1 (drawer slide) = 25 DOFs (nv)
+    # Total qpos: 6 (left) + 6 (right) + 7 (plate) + 7 (mug) + 1 (drawer slide) = 27 qpos (nq)
+    assert sim.model.nv == 25, f"Expected 25 DOFs, got {sim.model.nv}"
+    assert sim.model.nq == 27, f"Expected 27 qpos values, got {sim.model.nq}"
+
 
 
 def test_independent_namespaces(sim):

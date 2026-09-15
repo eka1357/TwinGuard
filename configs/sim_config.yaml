@@ -82,3 +82,18 @@ cameras:
     name: "right_arm_wrist_cam"
     width: 640
     height: 480
+
+primitives:
+  position_tolerance: 0.02          # meters (2cm end-effector reach tolerance)
+  angle_tolerance_deg: 10.0         # degrees orientation tolerance
+  ik_max_iterations: 150            # maximum iterations for Jacobian IK solver
+  ik_damping: 0.05                  # DLS damping factor lambda
+  ik_step_size: 0.5                 # gradient step size / scaling
+  ik_pos_threshold: 0.005           # IK convergence distance in meters (5mm)
+  primitive_step_limit: 300         # simulation physics steps per primitive
+  pour_tilt_angle_deg: 45.0         # minimum tilt angle for geometric pour proxy
+  pour_hold_steps: 50               # steps to hold pour tilt over container
+  pour_height_offset: 0.12          # height above container for pour action
+  lift_default_height: 0.08         # default vertical lift distance in meters
+  drawer_pull_distance: 0.06        # distance in meters to pull drawer handle
+

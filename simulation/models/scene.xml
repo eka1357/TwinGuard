@@ -26,6 +26,7 @@
     <material name="gripper_mat" rgba="0.1 0.1 0.1 1.0" roughness="0.5"/>
     <material name="joint_metal" rgba="0.75 0.75 0.78 1.0" metallic="0.8" roughness="0.3"/>
     <material name="plate_mat" rgba="0.95 0.95 0.96 1.0" roughness="0.2" reflectance="0.1"/>
+    <material name="mug_mat" rgba="0.85 0.25 0.2 1.0" roughness="0.4"/>
   </asset>
 
   <worldbody>
@@ -45,11 +46,29 @@
       <geom name="table_leg_4" type="cylinder" size="0.02 0.2" pos="-0.35 -0.45 -0.2" material="table_mat"/>
     </body>
 
-    <!-- Placeholder Object: Plate on shared table -->
+    <!-- Manipulation Object: Plate on shared table -->
     <body name="plate" pos="0.25 0 0.435">
       <freejoint name="plate_joint"/>
       <geom name="plate_geom" type="cylinder" size="0.08 0.007" material="plate_mat" mass="0.1" friction="0.8 0.005 0.0001"/>
       <geom name="plate_rim" type="cylinder" size="0.082 0.003" pos="0 0 0.005" material="plate_mat" mass="0.02"/>
+    </body>
+
+    <!-- Manipulation Object: Mug on shared table -->
+    <body name="mug" pos="0.22 -0.16 0.465">
+      <freejoint name="mug_joint"/>
+      <geom name="mug_base" type="cylinder" size="0.035 0.045" material="mug_mat" mass="0.08" friction="0.8 0.005 0.0001"/>
+      <geom name="mug_handle" type="box" size="0.008 0.012 0.02" pos="-0.04 0 0" material="mug_mat" mass="0.01"/>
+    </body>
+
+    <!-- Manipulation Object: Drawer unit on shared table -->
+    <body name="drawer_chest" pos="0.26 0.22 0.46">
+      <geom name="drawer_chest_geom" type="box" size="0.05 0.05 0.03" material="table_mat" mass="2.0"/>
+      <body name="drawer" pos="0 0 0">
+        <joint name="drawer_joint" type="slide" axis="-1 0 0" range="0 0.08" damping="1.0" armature="0.01"/>
+        <geom name="drawer_body_geom" type="box" size="0.045 0.045 0.025" rgba="0.75 0.55 0.35 1.0" mass="0.1" friction="0.8 0.005 0.0001"/>
+        <geom name="drawer_handle" type="box" size="0.008 0.02 0.008" pos="-0.06 0 0" rgba="0.2 0.2 0.2 1.0" mass="0.02"/>
+        <site name="drawer_handle_site" pos="-0.07 0 0" size="0.005" rgba="0 1 0 1"/>
+      </body>
     </body>
 
     <!-- Fixed Scene Cameras -->
@@ -63,6 +82,15 @@
 
   <!-- Contact exclusions between adjacent linked bodies -->
   <contact>
+    <exclude body1="drawer_chest" body2="drawer"/>
+    <exclude body1="drawer_chest" body2="left_arm_gripper_finger_left"/>
+    <exclude body1="drawer_chest" body2="left_arm_gripper_finger_right"/>
+    <exclude body1="drawer_chest" body2="left_arm_link_5_wrist_roll"/>
+    <exclude body1="drawer" body2="left_arm_gripper_finger_left"/>
+    <exclude body1="drawer" body2="left_arm_gripper_finger_right"/>
+    <exclude body1="drawer" body2="left_arm_link_5_wrist_roll"/>
+    <exclude body1="table" body2="drawer"/>
+    <exclude body1="table" body2="drawer_chest"/>
     <exclude body1="left_arm_base" body2="left_arm_link_1_yaw"/>
     <exclude body1="left_arm_link_1_yaw" body2="left_arm_link_2_shoulder"/>
     <exclude body1="left_arm_link_2_shoulder" body2="left_arm_link_3_elbow"/>
