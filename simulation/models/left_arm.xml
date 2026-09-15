@@ -1,0 +1,68 @@
+<mujoco model="left_arm">
+  <worldbody>
+    <!-- Left SO-101 Arm Mount (mounted at z = 0.42 on table, y = +0.22) -->
+    <body name="left_arm_base" pos="0 0.22 0.42">
+      <geom name="left_arm_base_plate" type="cylinder" size="0.07 0.01" pos="0 0 0.01" material="arm_dark"/>
+      <geom name="left_arm_base_turret" type="cylinder" size="0.045 0.025" pos="0 0 0.045" material="joint_metal"/>
+
+      <!-- Joint 1: Base Yaw (Pan) -->
+      <body name="left_arm_link_1_yaw" pos="0 0 0.07">
+        <joint name="left_arm_joint_base_yaw" type="hinge" axis="0 0 1" range="-150 150"/>
+        <geom name="left_arm_link_1_visual" type="box" size="0.035 0.04 0.03" pos="0 0 0.03" material="arm_accent_left"/>
+
+        <!-- Joint 2: Shoulder Pitch -->
+        <body name="left_arm_link_2_shoulder" pos="0 0 0.05">
+          <joint name="left_arm_joint_shoulder_pitch" type="hinge" axis="0 1 0" range="-110 110"/>
+          <geom name="left_arm_shoulder_joint_hub" type="cylinder" size="0.025 0.03" quat="0.7071 0.7071 0 0" material="joint_metal"/>
+          <geom name="left_arm_upper_arm_link" type="capsule" fromto="0 0 0 0 0 0.14" size="0.022" material="arm_dark"/>
+
+          <!-- Joint 3: Elbow Pitch -->
+          <body name="left_arm_link_3_elbow" pos="0 0 0.14">
+            <joint name="left_arm_joint_elbow_pitch" type="hinge" axis="0 1 0" range="-120 120"/>
+            <geom name="left_arm_elbow_joint_hub" type="cylinder" size="0.022 0.025" quat="0.7071 0.7071 0 0" material="joint_metal"/>
+            <geom name="left_arm_forearm_link" type="capsule" fromto="0 0 0 0 0 0.13" size="0.018" material="arm_dark"/>
+
+            <!-- Joint 4: Wrist Pitch -->
+            <body name="left_arm_link_4_wrist_pitch" pos="0 0 0.13">
+              <joint name="left_arm_joint_wrist_pitch" type="hinge" axis="0 1 0" range="-110 110"/>
+              <geom name="left_arm_wrist_pitch_hub" type="cylinder" size="0.018 0.02" quat="0.7071 0.7071 0 0" material="joint_metal"/>
+              <geom name="left_arm_wrist_pitch_body" type="box" size="0.018 0.02 0.02" pos="0 0 0.02" material="arm_accent_left"/>
+
+              <!-- Joint 5: Wrist Roll -->
+              <body name="left_arm_link_5_wrist_roll" pos="0 0 0.04">
+                <joint name="left_arm_joint_wrist_roll" type="hinge" axis="0 0 1" range="-180 180"/>
+                <geom name="left_arm_wrist_roll_flange" type="cylinder" size="0.02 0.012" pos="0 0 0.012" material="joint_metal"/>
+                <geom name="left_arm_gripper_mount" type="box" size="0.022 0.025 0.01" pos="0 0 0.03" material="arm_dark"/>
+
+                <!-- Wrist Camera and Sites -->
+                <site name="left_arm_wrist_cam_site" pos="0 0.03 0.035" quat="0.7071 0.7071 0 0"/>
+                <camera name="left_arm_wrist_cam" pos="0 0.03 0.035" xyaxes="1 0 0 0 0 1"/>
+                <site name="left_arm_gripper_site" pos="0 0 0.075" size="0.005" rgba="0 0.8 1 1"/>
+
+                <!-- Joint 6: Gripper Jaw (Main finger) -->
+                <body name="left_arm_gripper_finger_left" pos="0 0.015 0.035">
+                  <joint name="left_arm_joint_gripper" type="hinge" axis="1 0 0" range="0 40"/>
+                  <geom name="left_arm_finger_left_geom" type="box" size="0.008 0.004 0.025" pos="0 0 0.025" material="gripper_mat"/>
+                </body>
+
+                <!-- Gripper Finger Right -->
+                <body name="left_arm_gripper_finger_right" pos="0 -0.015 0.035">
+                  <geom name="left_arm_finger_right_geom" type="box" size="0.008 0.004 0.025" pos="0 0 0.025" material="gripper_mat"/>
+                </body>
+              </body>
+            </body>
+          </body>
+        </body>
+      </body>
+    </body>
+  </worldbody>
+
+  <actuator>
+    <position name="left_arm_actuator_base_yaw" joint="left_arm_joint_base_yaw" ctrlrange="-150 150"/>
+    <position name="left_arm_actuator_shoulder_pitch" joint="left_arm_joint_shoulder_pitch" ctrlrange="-110 110"/>
+    <position name="left_arm_actuator_elbow_pitch" joint="left_arm_joint_elbow_pitch" ctrlrange="-120 120"/>
+    <position name="left_arm_actuator_wrist_pitch" joint="left_arm_joint_wrist_pitch" ctrlrange="-110 110"/>
+    <position name="left_arm_actuator_wrist_roll" joint="left_arm_joint_wrist_roll" ctrlrange="-180 180"/>
+    <position name="left_arm_actuator_gripper" joint="left_arm_joint_gripper" ctrlrange="0 40"/>
+  </actuator>
+</mujoco>

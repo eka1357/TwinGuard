@@ -1,7 +1,13 @@
-<mujoco model="twinguard_scene">
+<mujoco model="twinguard_dual_arm_scene">
   <compiler angle="degree" coordinate="local"/>
 
   <option timestep="0.002" gravity="0 0 -9.81" integrator="RK4"/>
+
+  <default>
+    <joint damping="0.5" armature="0.01" frictionloss="0.1"/>
+    <geom friction="1.0 0.005 0.0001" solref="0.01 1" solimp="0.9 0.95 0.001"/>
+    <position kp="40" kv="5"/>
+  </default>
 
   <visual>
     <headlight ambient="0.4 0.4 0.4" diffuse="0.8 0.8 0.8" specular="0.2 0.2 0.2"/>
@@ -14,6 +20,12 @@
     <material name="floor_mat" texture="grid_floor" texrepeat="20 20" reflectance="0.1"/>
     <material name="table_mat" rgba="0.85 0.85 0.88 1.0" roughness="0.3" reflectance="0.05"/>
     <material name="target_mat" rgba="0.2 0.7 0.9 1.0" roughness="0.2"/>
+    <material name="arm_dark" rgba="0.2 0.22 0.25 1.0" roughness="0.6"/>
+    <material name="arm_accent_left" rgba="0.15 0.65 0.95 1.0" roughness="0.4"/>
+    <material name="arm_accent_right" rgba="0.95 0.45 0.1 1.0" roughness="0.4"/>
+    <material name="gripper_mat" rgba="0.1 0.1 0.1 1.0" roughness="0.5"/>
+    <material name="joint_metal" rgba="0.75 0.75 0.78 1.0" metallic="0.8" roughness="0.3"/>
+    <material name="plate_mat" rgba="0.95 0.95 0.96 1.0" roughness="0.2" reflectance="0.1"/>
   </asset>
 
   <worldbody>
@@ -24,7 +36,7 @@
     <light directional="true" pos="0.5 0.5 2.0" dir="-0.5 -0.5 -1.0" diffuse="0.9 0.9 0.9" specular="0.3 0.3 0.3"/>
     <light directional="true" pos="-0.5 -0.5 2.0" dir="0.5 0.5 -1.0" diffuse="0.4 0.4 0.4"/>
 
-    <!-- Work Table -->
+    <!-- Shared Work Table -->
     <body name="table" pos="0.2 0 0.4">
       <geom name="table_top" type="box" size="0.4 0.5 0.02" material="table_mat"/>
       <geom name="table_leg_1" type="cylinder" size="0.02 0.2" pos="0.35 0.45 -0.2" material="table_mat"/>
@@ -33,10 +45,37 @@
       <geom name="table_leg_4" type="cylinder" size="0.02 0.2" pos="-0.35 -0.45 -0.2" material="table_mat"/>
     </body>
 
-    <!-- Fixed Cameras -->
+    <!-- Placeholder Object: Plate on shared table -->
+    <body name="plate" pos="0.25 0 0.435">
+      <freejoint name="plate_joint"/>
+      <geom name="plate_geom" type="cylinder" size="0.08 0.007" material="plate_mat" mass="0.1" friction="0.8 0.005 0.0001"/>
+      <geom name="plate_rim" type="cylinder" size="0.082 0.003" pos="0 0 0.005" material="plate_mat" mass="0.02"/>
+    </body>
+
+    <!-- Fixed Scene Cameras -->
     <camera name="overview_cam" pos="0.8 -0.8 1.1" xyaxes="0.707 0.707 0 -0.4 0.4 0.82"/>
     <camera name="front_cam" pos="0.7 0 0.8" xyaxes="0 1 0 -0.5 0 0.86"/>
   </worldbody>
 
-  <include file="so101.xml"/>
+  <!-- Dual Arms: Left Arm and Right Arm -->
+  <include file="left_arm.xml"/>
+  <include file="right_arm.xml"/>
+
+  <!-- Contact exclusions between adjacent linked bodies -->
+  <contact>
+    <exclude body1="left_arm_base" body2="left_arm_link_1_yaw"/>
+    <exclude body1="left_arm_link_1_yaw" body2="left_arm_link_2_shoulder"/>
+    <exclude body1="left_arm_link_2_shoulder" body2="left_arm_link_3_elbow"/>
+    <exclude body1="left_arm_link_3_elbow" body2="left_arm_link_4_wrist_pitch"/>
+    <exclude body1="left_arm_link_4_wrist_pitch" body2="left_arm_link_5_wrist_roll"/>
+    <exclude body1="left_arm_link_5_wrist_roll" body2="left_arm_gripper_finger_left"/>
+    <exclude body1="left_arm_link_5_wrist_roll" body2="left_arm_gripper_finger_right"/>
+    <exclude body1="right_arm_base" body2="right_arm_link_1_yaw"/>
+    <exclude body1="right_arm_link_1_yaw" body2="right_arm_link_2_shoulder"/>
+    <exclude body1="right_arm_link_2_shoulder" body2="right_arm_link_3_elbow"/>
+    <exclude body1="right_arm_link_3_elbow" body2="right_arm_link_4_wrist_pitch"/>
+    <exclude body1="right_arm_link_4_wrist_pitch" body2="right_arm_link_5_wrist_roll"/>
+    <exclude body1="right_arm_link_5_wrist_roll" body2="right_arm_gripper_finger_left"/>
+    <exclude body1="right_arm_link_5_wrist_roll" body2="right_arm_gripper_finger_right"/>
+  </contact>
 </mujoco>

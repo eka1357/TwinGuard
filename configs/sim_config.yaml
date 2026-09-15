@@ -1,26 +1,84 @@
 # TwinGuard Simulation Configuration
 simulation:
   model_path: "simulation/models/scene.xml"
+  single_arm_model_path: "simulation/models/scene_single.xml"
   timestep: 0.002
   gravity: [0, 0, -9.81]
   integrator: "RK4"
 
 robot:
   type: "SO-101"
-  num_arms: 1
+  num_arms: 2
   arm_dof: 6
-  joints:
+  canonical_joints:
     - joint_base_yaw
     - joint_shoulder_pitch
     - joint_elbow_pitch
     - joint_wrist_pitch
     - joint_wrist_roll
     - joint_gripper
+  canonical_actuators:
+    - actuator_base_yaw
+    - actuator_shoulder_pitch
+    - actuator_elbow_pitch
+    - actuator_wrist_pitch
+    - actuator_wrist_roll
+    - actuator_gripper
+  arms:
+    left_arm:
+      name: "left_arm"
+      prefix: "left_arm_"
+      base_pos: [0.0, 0.22, 0.42]
+      joints:
+        - "left_arm_joint_base_yaw"
+        - "left_arm_joint_shoulder_pitch"
+        - "left_arm_joint_elbow_pitch"
+        - "left_arm_joint_wrist_pitch"
+        - "left_arm_joint_wrist_roll"
+        - "left_arm_joint_gripper"
+      actuators:
+        - "left_arm_actuator_base_yaw"
+        - "left_arm_actuator_shoulder_pitch"
+        - "left_arm_actuator_elbow_pitch"
+        - "left_arm_actuator_wrist_pitch"
+        - "left_arm_actuator_wrist_roll"
+        - "left_arm_actuator_gripper"
+    right_arm:
+      name: "right_arm"
+      prefix: "right_arm_"
+      base_pos: [0.0, -0.22, 0.42]
+      joints:
+        - "right_arm_joint_base_yaw"
+        - "right_arm_joint_shoulder_pitch"
+        - "right_arm_joint_elbow_pitch"
+        - "right_arm_joint_wrist_pitch"
+        - "right_arm_joint_wrist_roll"
+        - "right_arm_joint_gripper"
+      actuators:
+        - "right_arm_actuator_base_yaw"
+        - "right_arm_actuator_shoulder_pitch"
+        - "right_arm_actuator_elbow_pitch"
+        - "right_arm_actuator_wrist_pitch"
+        - "right_arm_actuator_wrist_roll"
+        - "right_arm_actuator_gripper"
+  gripper:
+    open_pos: 40.0
+    closed_pos: 0.0
 
-camera:
-  overview:
+cameras:
+  overview_cam:
+    name: "overview_cam"
     width: 1280
     height: 720
-  wrist:
+  front_cam:
+    name: "front_cam"
+    width: 640
+    height: 480
+  left_arm_wrist_cam:
+    name: "left_arm_wrist_cam"
+    width: 640
+    height: 480
+  right_arm_wrist_cam:
+    name: "right_arm_wrist_cam"
     width: 640
     height: 480

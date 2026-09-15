@@ -7,8 +7,8 @@ from simulation.simulator import TwinGuardSim
 
 @pytest.fixture
 def sim():
-    """Fixture providing a fresh TwinGuardSim instance."""
-    sim_instance = TwinGuardSim()
+    """Fixture providing a fresh TwinGuardSim instance for the single-arm scene."""
+    sim_instance = TwinGuardSim(model_path="simulation/models/scene_single.xml")
     sim_instance.reset()
     return sim_instance
 

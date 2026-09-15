@@ -20,8 +20,8 @@ def main() -> int:
     print(" TwinGuard: Minimal SO-101 MuJoCo Simulation")
     print("=" * 60)
 
-    # 1. Initialize simulation
-    sim = TwinGuardSim()
+    # 1. Initialize simulation with single-arm scene
+    sim = TwinGuardSim(model_path="simulation/models/scene_single.xml")
     print(f"[OK] MuJoCo model loaded: {sim.model_path.name}")
     print(f"     - Joints ({len(sim.joint_names)}): {', '.join(sim.joint_names)}")
     print(f"     - Actuators ({len(sim.actuator_names)}): {', '.join(sim.actuator_names)}")
