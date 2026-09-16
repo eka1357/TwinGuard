@@ -90,3 +90,45 @@ def test_simulation_reset(sim):
     velocities = sim.get_joint_velocities()
     for j_name, vel in velocities.items():
         assert vel == 0.0, f"Joint velocity for {j_name} should be 0 after reset"
+
+
+def test_left_gripper_position():
+    """Verify that the left gripper site position is a 3D NumPy array."""
+    sim = TwinGuardSim()
+    try:
+        position = sim.get_gripper_position("left_arm")
+        assert isinstance(position, np.ndarray)
+        assert position.shape == (3,)
+    finally:
+        sim.close()
+
+
+def test_right_gripper_position():
+    """Verify that the right gripper site position is a 3D NumPy array."""
+    sim = TwinGuardSim()
+    try:
+        position = sim.get_gripper_position("right_arm")
+        assert isinstance(position, np.ndarray)
+        assert position.shape == (3,)
+    finally:
+        sim.close()
+
+
+def test_invalid_gripper_arm_raises_value_error():
+    """Verify that an unknown arm is rejected."""
+    sim = TwinGuardSim()
+    try:
+        with pytest.raises(ValueError):
+            sim.get_gripper_position("invalid_arm")
+    finally:
+        sim.close()
+
+
+def test_invalid_site_raises_value_error():
+    """Verify that an unknown site is rejected."""
+    sim = TwinGuardSim()
+    try:
+        with pytest.raises(ValueError):
+            sim.get_site_position("invalid_site")
+    finally:
+        sim.close()

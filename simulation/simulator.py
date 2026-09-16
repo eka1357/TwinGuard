@@ -271,6 +271,25 @@ class TwinGuardSim:
             return positions[gripper_key]
         return positions.get("joint_gripper", 0.0)
 
+    def get_site_position(self, site_name: str) -> np.ndarray:
+        """Return the world-space position of a named MuJoCo site."""
+        site_id = mujoco.mj_name2id(
+            self.model,
+            mujoco.mjtObj.mjOBJ_SITE,
+            site_name,
+        )
+        if site_id < 0:
+            raise ValueError(f"Site '{site_name}' not found in the model.")
+        return self.data.site_xpos[site_id].copy()
+
+    def get_gripper_position(self, arm: str) -> np.ndarray:
+        """Return the world-space position of an arm's gripper site."""
+        if arm not in self.arm_names:
+            raise ValueError(
+                f"Unknown arm '{arm}'. Configured arms: {self.arm_names}"
+            )
+        return self.get_site_position(f"{arm}_gripper_site")
+
     # ----------------------------------------------------------------------
     # Global Joint State & Targeting API (Backward Compatibility)
     # ----------------------------------------------------------------------
