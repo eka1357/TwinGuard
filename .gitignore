@@ -20,3 +20,9 @@ Thumbs.db
 .DS_Store
 
 .env
+
+# Checkpoints and models
+checkpoints/
+*.pt
+*.pth
+*.onnx
