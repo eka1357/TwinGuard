@@ -61,12 +61,22 @@ pip install -r requirements.txt
 ### 2. Run Automated Tests
 
 ```powershell
-.venv\Scripts\pytest tests/test_simulation.py -v
+# Run the complete test suite (dual-arm scene, motion primitives, single-arm)
+.venv\Scripts\pytest tests/ -v
 ```
 
-### 3. Run the Minimal Simulation Example
+### 3. Run Simulations with Interactive 3D Visualizer
+
+By default, scripts run headlessly in the console for fast physics benchmarks. Pass `--view` to open the native MuJoCo interactive 3D viewer window:
 
 ```powershell
+# Interactive 3D viewer: Dual-arm bimanual scene (table, plate, mug, drawer)
+.venv\Scripts\python scripts/run_dual_arm_sim.py --view
+
+# Interactive 3D viewer: Minimal single-arm scene
+.venv\Scripts\python scripts/run_minimal_sim.py --view
+
+# Headless mode (fast console loop):
 .venv\Scripts\python scripts/run_minimal_sim.py
 ```
 

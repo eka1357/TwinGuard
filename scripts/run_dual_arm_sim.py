@@ -44,8 +44,8 @@ def main() -> int:
     parser.add_argument(
         "--steps",
         type=int,
-        default=1000,
-        help="Number of simulation steps to execute (timestep = 0.002s)",
+        default=None,
+        help="Number of simulation steps to execute (default: continuous if --view, 1000 headless)",
     )
     parser.add_argument(
         "--save-render",
@@ -75,8 +75,12 @@ def main() -> int:
     plate_init = sim.get_joint_positions()["plate_joint"]
     print(f"[OK] Plate initial pos on table: x={plate_init[0]:.3f}, y={plate_init[1]:.3f}, z={plate_init[2]:.3f}")
 
-    total_steps = args.steps
-    print(f"\nExecuting simulation for {total_steps} steps ({total_steps * sim.get_timestep():.2f}s physics)...")
+    total_steps = args.steps if args.steps is not None else (None if args.view else 1000)
+    if total_steps is not None:
+        print(f"\nExecuting simulation for {total_steps} steps ({total_steps * sim.get_timestep():.2f}s physics)...")
+    else:
+        print("\nExecuting simulation continuously. Close the 3D viewer window to stop...")
+
     if args.view:
         print("[INFO] Launching MuJoCo interactive viewer. Close window to stop.")
 
@@ -85,7 +89,7 @@ def main() -> int:
 
     def step_simulation(viewer_instance=None):
         nonlocal step_count
-        while step_count < total_steps:
+        while total_steps is None or step_count < total_steps:
             step_count += 1
             t = sim.get_time()
 
