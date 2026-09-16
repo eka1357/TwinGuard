@@ -61,8 +61,8 @@ def resolve_step_target(sim: TwinGuardSim, step: PlanStep) -> Optional[List[floa
     # If target was provided by step
     if step.target is not None:
         target = list(step.target)
-        # Ensure z clearance above table for approach and transport
-        if action in ("approach", "transport") and target[2] < 0.49:
+        # Ensure z clearance above table for transport
+        if action == "transport" and target[2] < 0.49:
             target[2] = 0.50
         # If transport/approach x coordinate exceeds reach:
         if action in ("approach", "transport") and target[0] > 0.28:
@@ -90,11 +90,13 @@ def resolve_step_target(sim: TwinGuardSim, step: PlanStep) -> Optional[List[floa
             bid = mujoco.mj_name2id(sim.model, mujoco.mjtObj.mjOBJ_BODY, candidate)
             if bid != -1:
                 pos = list(sim.data.xpos[bid])
-                if action in ("approach", "transport"):
+                if action == "approach":
                     if candidate == "mug":
-                        pos[2] = max(pos[2] + 0.02, 0.485)
+                        pos[2] = 0.465
                     else:
-                        pos[2] = max(pos[2] + 0.04, 0.50)
+                        pos[2] = 0.440
+                elif action == "transport":
+                    pos[2] = 0.50
                 elif action == "pour":
                     pos[2] = max(pos[2] + 0.10, 0.52)
                     if arm == "left_arm" and pos[1] < -0.05:
@@ -118,18 +120,22 @@ def execute_primitive_step(
 
     if action == "approach":
         if target is None:
-            target = resolve_step_target(sim, step) or [0.25, 0.0, 0.50]
+            target = resolve_step_target(sim, step) or [0.25, 0.0, 0.44]
+        # Two-phase smooth approach: hover above object then descend
+        if target[2] < 0.48:
+            hover_target = [target[0], target[1], 0.50]
+            primitives.approach(arm, hover_target)
         return bool(primitives.approach(arm, target))
 
     elif action == "grasp":
-        return bool(primitives.grasp(arm))
+        return bool(primitives.grasp(arm, object_name=step.object))
 
     elif action == "lift":
-        return bool(primitives.lift(arm, height=0.06))
+        return bool(primitives.lift(arm, height=0.07))
 
     elif action == "transport":
         if target is None:
-            target = resolve_step_target(sim, step) or [0.25, 0.0, 0.50]
+            target = resolve_step_target(sim, step) or [0.20, 0.10, 0.50]
         return bool(primitives.transport(arm, target))
 
     elif action == "release":
@@ -139,7 +145,8 @@ def execute_primitive_step(
         return bool(primitives.open_drawer(arm, drawer_body=step.object))
 
     elif action == "pour":
-        return bool(primitives.pour(arm, target_container=step.object))
+        container_arg = target if target is not None else step.object
+        return bool(primitives.pour(arm, target_container=container_arg))
 
     else:
         logger.error(f"Unrecognized action '{action}'")

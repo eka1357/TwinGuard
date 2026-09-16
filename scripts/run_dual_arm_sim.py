@@ -58,21 +58,21 @@ def run_bimanual_task(sim: TwinGuardSim, viewer_instance=None) -> bool:
 
     # 2. Arm A: Approach plate
     plate_pos = list(sim.data.xpos[mujoco.mj_name2id(sim.model, mujoco.mjtObj.mjOBJ_BODY, "plate")])
-    plate_approach = [plate_pos[0], plate_pos[1], max(plate_pos[2] + 0.04, 0.49)]
-    print(f"  -> Step 2: Left arm approaching plate at {plate_approach}...")
-    primitives.approach("left_arm", plate_approach)
+    print(f"  -> Step 2: Left arm approaching plate at {plate_pos}...")
+    primitives.approach("left_arm", [plate_pos[0], plate_pos[1], 0.50])
+    primitives.approach("left_arm", [plate_pos[0], plate_pos[1], 0.440])
     if not check_stability("approach_plate"):
         return False
 
     # 3. Arm A: Grasp plate
     print("  -> Step 3: Left arm grasping plate...")
-    primitives.grasp("left_arm")
+    primitives.grasp("left_arm", object_name="plate")
     if not check_stability("grasp_plate"):
         return False
 
     # 4. Arm A: Lift plate
     print("  -> Step 4: Left arm lifting plate...")
-    primitives.lift("left_arm", height=0.06)
+    primitives.lift("left_arm", height=0.07)
     if not check_stability("lift_plate"):
         return False
 
@@ -91,27 +91,27 @@ def run_bimanual_task(sim: TwinGuardSim, viewer_instance=None) -> bool:
 
     # 7. Arm B: Approach mug
     mug_pos = list(sim.data.xpos[mujoco.mj_name2id(sim.model, mujoco.mjtObj.mjOBJ_BODY, "mug")])
-    mug_approach = [mug_pos[0], mug_pos[1], max(mug_pos[2] + 0.02, 0.485)]
-    print(f"  -> Step 7: Right arm approaching mug at {mug_approach}...")
-    primitives.approach("right_arm", mug_approach)
+    print(f"  -> Step 7: Right arm approaching mug at {mug_pos}...")
+    primitives.approach("right_arm", [mug_pos[0], mug_pos[1], 0.50])
+    primitives.approach("right_arm", [mug_pos[0], mug_pos[1], 0.465])
     if not check_stability("approach_mug"):
         return False
 
     # 8. Arm B: Grasp mug
     print("  -> Step 8: Right arm grasping mug...")
-    primitives.grasp("right_arm")
+    primitives.grasp("right_arm", object_name="mug")
     if not check_stability("grasp_mug"):
         return False
 
     # 9. Arm B: Lift mug
     print("  -> Step 9: Right arm lifting mug...")
-    primitives.lift("right_arm", height=0.05)
+    primitives.lift("right_arm", height=0.06)
     if not check_stability("lift_mug"):
         return False
 
     # 10. Arm A: Pour geometric proxy into mug
     print("  -> Step 10: Left arm tilting to pour water proxy into mug...")
-    primitives.pour("left_arm", target_container="mug")
+    primitives.pour("left_arm", target_container=[0.22, -0.05, 0.52])
     if not check_stability("pour"):
         return False
 

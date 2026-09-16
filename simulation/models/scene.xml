@@ -121,5 +121,20 @@
     <exclude body1="right_arm_link_4_wrist_pitch" body2="right_arm_link_5_wrist_roll"/>
     <exclude body1="right_arm_link_5_wrist_roll" body2="right_arm_gripper_finger_left"/>
     <exclude body1="right_arm_link_5_wrist_roll" body2="right_arm_gripper_finger_right"/>
+
+    <!-- Manipulation object contact exclusions with grippers during latching -->
+    <exclude body1="left_arm_gripper_finger_left" body2="plate"/>
+    <exclude body1="left_arm_gripper_finger_right" body2="plate"/>
+    <exclude body1="left_arm_link_5_wrist_roll" body2="plate"/>
+    <exclude body1="right_arm_gripper_finger_left" body2="plate"/>
+    <exclude body1="right_arm_gripper_finger_right" body2="plate"/>
+    <exclude body1="right_arm_link_5_wrist_roll" body2="plate"/>
+
+    <exclude body1="left_arm_gripper_finger_left" body2="mug"/>
+    <exclude body1="left_arm_gripper_finger_right" body2="mug"/>
+    <exclude body1="left_arm_link_5_wrist_roll" body2="mug"/>
+    <exclude body1="right_arm_gripper_finger_left" body2="mug"/>
+    <exclude body1="right_arm_gripper_finger_right" body2="mug"/>
+    <exclude body1="right_arm_link_5_wrist_roll" body2="mug"/>
   </contact>
 </mujoco>

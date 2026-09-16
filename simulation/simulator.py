@@ -119,10 +119,37 @@ class TwinGuardSim:
                 self.arm_joints[arm_name] = list(self.joint_names)
                 self.arm_actuators[arm_name] = list(self.actuator_names)
 
+        self.held_objects: Dict[str, Optional[str]] = {arm: None for arm in self.arm_names}
+        self.held_offsets: Dict[str, np.ndarray] = {arm: np.zeros(3) for arm in self.arm_names}
+
     def reset(self) -> None:
         """Reset simulation state to initial zero configuration."""
+        self.held_objects = {arm: None for arm in self.arm_names}
+        self.held_offsets = {arm: np.zeros(3) for arm in self.arm_names}
         mujoco.mj_resetData(self.model, self.data)
         mujoco.mj_forward(self.model, self.data)
+
+    def attach_object(self, arm: str, object_name: str) -> bool:
+        """Attach a free-joint object to an arm's gripper for physical manipulation."""
+        if arm not in self.arm_names:
+            return False
+        bid = mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_BODY, object_name)
+        sid = mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_SITE, f"{arm}_gripper_site")
+        if bid == -1 or sid == -1:
+            return False
+        self.held_objects[arm] = object_name
+        ee_pos = self.data.site_xpos[sid]
+        obj_pos = self.data.xpos[bid]
+        self.held_offsets[arm] = np.copy(obj_pos - ee_pos)
+        return True
+
+    def detach_object(self, arm: str) -> Optional[str]:
+        """Detach any held object from the specified arm upon release."""
+        if arm not in self.arm_names:
+            return None
+        obj = self.held_objects.get(arm)
+        self.held_objects[arm] = None
+        return obj
 
     def attach_viewer(self, viewer: Any, realtime: bool = True) -> None:
         """Attach a passive MuJoCo viewer to sync on simulation step.
@@ -147,6 +174,18 @@ class TwinGuardSim:
         """
         import time
         for _ in range(n_steps):
+            for arm, obj_name in list(self.held_objects.items()):
+                if obj_name is not None:
+                    jid = mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_JOINT, f"{obj_name}_joint")
+                    sid = mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_SITE, f"{arm}_gripper_site")
+                    if jid != -1 and sid != -1:
+                        qpos_adr = self.model.jnt_qposadr[jid]
+                        dof_adr = self.model.jnt_dofadr[jid]
+                        ee_pos = self.data.site_xpos[sid]
+                        offset = self.held_offsets.get(arm, np.zeros(3))
+                        self.data.qpos[qpos_adr : qpos_adr + 3] = ee_pos + offset
+                        self.data.qvel[dof_adr : dof_adr + 6] = 0.0
+
             mujoco.mj_step(self.model, self.data)
         viewer = getattr(self, "_viewer", None)
         if viewer is not None:

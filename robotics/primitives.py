@@ -228,12 +228,28 @@ class MotionPrimitives:
         self,
         arm: str,
         steps: int = 120,
+        object_name: Optional[str] = None,
     ) -> bool:
-        """Close the gripper on the specified arm."""
+        """Close the gripper on the specified arm and latch nearby graspable object."""
         if arm not in self.sim.arm_names:
             raise ValueError(f"Unknown arm '{arm}'. Available arms: {self.sim.arm_names}")
 
         self.sim.close_gripper(arm)
+        ee_pos = self.get_ee_position(arm)
+
+        # Latch closest graspable object within reach
+        candidates = [object_name] if object_name else ["plate", "mug"]
+        for cand in candidates:
+            if not cand:
+                continue
+            bid = mujoco.mj_name2id(self.sim.model, mujoco.mjtObj.mjOBJ_BODY, cand)
+            if bid != -1:
+                obj_pos = self.sim.data.xpos[bid]
+                dist = float(np.linalg.norm(ee_pos - obj_pos))
+                if dist < 0.12:  # within grasp latching envelope (12 cm)
+                    self.sim.attach_object(arm, cand)
+                    break
+
         for _ in range(steps):
             self.sim.step(1)
             if not self.sim.is_stable():
@@ -276,10 +292,11 @@ class MotionPrimitives:
         arm: str,
         steps: int = 120,
     ) -> bool:
-        """Open the gripper on the specified arm."""
+        """Open the gripper on the specified arm and release held object."""
         if arm not in self.sim.arm_names:
             raise ValueError(f"Unknown arm '{arm}'. Available arms: {self.sim.arm_names}")
 
+        self.sim.detach_object(arm)
         self.sim.open_gripper(arm)
         for _ in range(steps):
             self.sim.step(1)
