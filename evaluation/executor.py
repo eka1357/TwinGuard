@@ -356,6 +356,12 @@ def run_plan(
         logger.info("=" * 60)
 
     if viewer_ctx is not None:
+        if verbose:
+            logger.info("\n[INFO] Manipulation complete! Holding viewer for 3.0s to view dinner table setup...")
+        import time
+        for _ in range(150):
+            sim.step(1)
+            time.sleep(0.02)
         sim.detach_viewer()
         viewer_ctx.close()
 

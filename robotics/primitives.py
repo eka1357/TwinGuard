@@ -395,32 +395,45 @@ class MotionPrimitives:
         if not hover_ok or not self.sim.is_stable():
             return False
 
-        # 3. Tilt wrist past threshold (geometric proxy pour)
-        # Drive wrist roll with enough margin to exceed threshold
-        tilt_cmd = tilt_deg * 1.3
-        self.sim.set_arm_joint_targets(arm, {"joint_wrist_roll": tilt_cmd}, in_degrees=True)
+        # 3. Tilt wrist downwards (pitch) and roll past threshold (realistic pouring action)
+        tilt_cmd_pitch = -abs(tilt_deg)
+        tilt_cmd_roll = tilt_deg * 0.8
+        self.sim.set_arm_joint_targets(
+            arm,
+            {"joint_wrist_pitch": tilt_cmd_pitch, "joint_wrist_roll": tilt_cmd_roll},
+            in_degrees=True,
+        )
 
         # Step until tilted
         for _ in range(120):
             self.sim.step(1)
             if not self.sim.is_stable():
                 return False
-            roll_val = self.sim.get_arm_joint_positions(arm, in_degrees=True).get("joint_wrist_roll", 0.0)
-            if abs(roll_val) >= (tilt_deg - angle_tol):
+            j_pos = self.sim.get_arm_joint_positions(arm, in_degrees=True)
+            roll_val = j_pos.get("joint_wrist_roll", 0.0)
+            pitch_val = j_pos.get("joint_wrist_pitch", 0.0)
+            if abs(pitch_val) >= (tilt_deg - angle_tol) or abs(roll_val) >= (tilt_deg * 0.8 - angle_tol):
                 break
 
-        # Hold tilt for n_hold steps
+        # Hold tilt for n_hold steps (visible in real-time viewer)
         held_tilt = False
-        for _ in range(n_hold):
+        effective_hold = max(n_hold, 80)
+        for _ in range(effective_hold):
             self.sim.step(1)
             if not self.sim.is_stable():
                 return False
-            roll_val = self.sim.get_arm_joint_positions(arm, in_degrees=True).get("joint_wrist_roll", 0.0)
-            if abs(roll_val) >= (tilt_deg - angle_tol):
+            j_pos = self.sim.get_arm_joint_positions(arm, in_degrees=True)
+            roll_val = j_pos.get("joint_wrist_roll", 0.0)
+            pitch_val = j_pos.get("joint_wrist_pitch", 0.0)
+            if abs(pitch_val) >= 20.0 or abs(roll_val) >= 20.0:
                 held_tilt = True
 
         # 4. Restore neutral wrist orientation
-        self.sim.set_arm_joint_targets(arm, {"joint_wrist_roll": 0.0}, in_degrees=True)
+        self.sim.set_arm_joint_targets(
+            arm,
+            {"joint_wrist_pitch": 0.0, "joint_wrist_roll": 0.0},
+            in_degrees=True,
+        )
         for _ in range(120):
             self.sim.step(1)
 
