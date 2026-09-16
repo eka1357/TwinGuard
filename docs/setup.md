@@ -46,41 +46,55 @@ pip install -r requirements.txt
 TwinGuard uses `pytest` for unit and regression testing:
 
 ```powershell
-# Run dual-arm bimanual simulation tests
-.venv\Scripts\pytest tests/test_dual_arm_scene.py -v
+# Run the complete test suite (51 tests)
+.venv\Scripts\pytest tests/ -v
 
-# Run single-arm regression tests
-.venv\Scripts\pytest tests/test_simulation.py -v
-
-# Run all tests
-.venv\Scripts\pytest -v
+# Or run specific test modules:
+.venv\Scripts\pytest tests/test_primitives.py -v
+.venv\Scripts\pytest tests/test_planner.py -v
+.venv\Scripts\pytest tests/test_executor.py -v
+.venv\Scripts\pytest tests/test_runner.py -v
+.venv\Scripts\pytest tests/test_benchmark.py -v
 ```
 
 Expected output:
 ```
-============================= 14 passed in 2.70s ==============================
+======================= 51 passed in 26.93s =======================
 ```
 
 ---
 
-## 4. Run Simulation Examples
+## 4. Run Execution Pipelines & Demos
 
-### Dual-Arm Bimanual Simulation (Headless or Interactive 3D Viewer)
-
-Execute the dual-arm SO-101 simulation script:
-
+### End-to-End Pipeline Executor
 ```powershell
-# Run headless physics loop with real-time telemetry (1000 steps)
+.venv\Scripts\python evaluation/executor.py
+```
+
+### 10-Seed Robustness Evaluation Runner
+```powershell
+.venv\Scripts\python evaluation/runner.py
+.venv\Scripts\python evaluation/report.py
+```
+
+### OpenVINO Hardware Benchmark
+```powershell
+.venv\Scripts\python evaluation/openvino_export.py
+.venv\Scripts\python evaluation/benchmark.py --device CPU
+```
+
+### Demo Video & Frame Capture
+```powershell
+.venv\Scripts\python scripts/record_demo.py --seeds 2 7 --save-render --make-gif
+```
+
+### Simulation Visualizer (Headless or Interactive 3D Viewer)
+```powershell
+# Run headless physics loop
 .venv\Scripts\python scripts/run_dual_arm_sim.py
 
 # Launch interactive 3D MuJoCo viewer window
 .venv\Scripts\python scripts/run_dual_arm_sim.py --view
-```
-
-### Minimal Single-Arm Simulation
-
-```powershell
-.venv\Scripts\python scripts/run_minimal_sim.py
 ```
 
 ---
@@ -90,29 +104,25 @@ Execute the dual-arm SO-101 simulation script:
 ```
 TwinGuard/
 ├── AGENTS.md                 # Project rules and milestone scopes
-├── README.md                 # Project overview and quickstart
+├── NOTICE.md                 # Open-source third-party credits and licenses
+├── README.md                 # Comprehensive project deliverable and architecture summary
 ├── requirements.txt          # Python dependencies
 ├── simulation/               # MuJoCo simulation environment & models
 │   ├── models/
-│   │   ├── so101.xml         # SO-101 6-DOF robotic arm definition
+│   │   ├── scene.xml         # Dual-arm bimanual scene (table, plate, mug, drawer)
 │   │   ├── left_arm.xml      # Namespaced left_arm SO-101 definition
 │   │   ├── right_arm.xml     # Namespaced right_arm SO-101 definition
-│   │   ├── scene.xml         # Dual-arm workspace, table, plate & cameras
 │   │   └── scene_single.xml  # Preserved single-arm scene for M1 regression
-│   └── simulator.py          # TwinGuardSim Python API wrapper (dual-arm & single-arm)
-├── robotics/                 # Robot hardware, kinematics & low-level control
-├── perception/               # Visual observation interfaces
-├── planning/                 # Task and trajectory planning
-├── safety/                   # Safety limits and collision monitoring
-├── evaluation/               # Benchmarking and metrics
-├── scripts/                  # Executable entry points
-│   ├── run_dual_arm_sim.py   # Dual-arm runner with optional interactive viewer
-│   └── run_minimal_sim.py    # Single-arm simulation script
-├── configs/                  # Environment and model parameters
-│   └── sim_config.yaml       # Simulation & dual-arm configuration
-├── docs/                     # Project documentation
-│   └── setup.md              # Setup and execution guide
-└── tests/                    # Pytest test suite
-    ├── test_dual_arm_scene.py# Dual-arm scene & independent motion tests
-    └── test_simulation.py    # Single-arm regression tests
+│   └── simulator.py          # TwinGuardSim Python API wrapper
+├── robotics/                 # Bimanual motion primitives (approach, grasp, lift, etc.)
+├── perception/               # Ground-truth scene state & neural object detector
+├── planning/                 # Task planner, Pydantic validation & dynamic replanner
+├── safety/                   # Safety verifier, drop detector, collision checker
+├── evaluation/               # End-to-end executor, 10-seed runner, report, OpenVINO benchmark
+├── checkpoints/              # Model weights and OpenVINO IR (.xml + .bin)
+├── scripts/                  # Runnable scripts (record_demo, run_dual_arm_sim, run_minimal_sim)
+├── configs/                  # Central configuration (sim_config.yaml)
+├── docs/                     # Project documentation (CHALLENGE.md, setup.md)
+└── tests/                    # Pytest verification suite (51 tests)
 ```
+

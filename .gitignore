@@ -26,3 +26,6 @@ checkpoints/
 *.pt
 *.pth
 *.onnx
+
+# Recordings and demo frames
+recordings/

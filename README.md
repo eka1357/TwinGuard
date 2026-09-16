@@ -1,83 +1,394 @@
-# TwinGuard
+# TwinGuard: Bimanual Physical AI Manipulation with Closed-Loop Verification & Recovery
 
-TwinGuard is a reliable bimanual Physical AI system utilizing two simulated SO-101 robotic arms in MuJoCo, with multi-step manipulation, failure detection, recovery mechanisms, and hardware optimization.
+TwinGuard is a robust, production-grade Physical AI system designed for the **Intel Physical AI Online Challenge** ("Setting Up a Dinner Table" — AI Infra Summit Hackathon). It coordinates two simulated 6-DOF SO-101 robotic arms in MuJoCo to execute complex multi-step manipulation tasks from natural language instructions, complete with visual perception, closed-loop safety verification, dynamic error recovery, and Intel OpenVINO edge-inference acceleration.
 
----
-
-## Current Milestone: M1 — Python & MuJoCo Environment Verification
-
-The current scope strictly focuses on:
-- Verified Python environment with MuJoCo 3.x.
-- Clean, modular repository architecture.
-- Minimal MJCF model for the 6-DOF SO-101 robotic arm.
-- Automated tests and a minimal runnable physics simulation loop.
+[![Python](https://img.shields.io/badge/Python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13-blue.svg)](https://www.python.org/)
+[![MuJoCo](https://img.shields.io/badge/MuJoCo-3.1%2B-black.svg)](https://mujoco.org/)
+[![OpenVINO](https://img.shields.io/badge/OpenVINO-2025%2B-cyan.svg)](https://github.com/openvinotoolkit/openvino)
+[![PyTorch](https://img.shields.io/badge/PyTorch-2.0%2B-red.svg)](https://pytorch.org/)
+[![License](https://img.shields.io/badge/License-Apache_2.0-green.svg)](NOTICE.md)
+[![Tests](https://img.shields.io/badge/Tests-51%20Passed-brightgreen.svg)](tests/)
 
 ---
 
-## Directory Structure
+## Table of Contents
+
+1. [Architecture Overview](#architecture-overview)
+2. [Repository Structure](#repository-structure)
+3. [Installation & Prerequisites](#installation--prerequisites)
+4. [How to Run Each Subsystem](#how-to-run-each-subsystem)
+   - [Physics Simulation & Interactive 3D Viewer](#1-physics-simulation--interactive-3d-viewer)
+   - [Motion Primitives Verification](#2-motion-primitives-verification)
+   - [LLM / VLA Planner Verification](#3-llm--vla-planner-verification)
+   - [Full Pipeline Executor](#4-full-pipeline-executor)
+   - [10-Seed Robustness Evaluation](#5-10-seed-robustness-evaluation)
+   - [Evaluation Metrics & Summary Report](#6-evaluation-metrics--summary-report)
+   - [OpenVINO Model Export & Hardware Benchmark](#7-openvino-model-export--hardware-benchmark)
+   - [Demo Frame & Video Generation](#8-demo-frame--video-generation)
+   - [Complete Test Suite](#9-complete-test-suite)
+5. [Evaluation Results](#evaluation-results)
+   - [Executive Summary Metrics](#executive-summary-metrics)
+   - [Per-Seed Performance Table](#per-seed-performance-table)
+   - [Controlled Failure & Dynamic Recovery Analysis](#controlled-failure--dynamic-recovery-analysis)
+6. [OpenVINO Benchmark Report](#openvino-benchmark-report)
+7. [Hardware Target Configuration](#hardware-target-configuration)
+8. [Acknowledgements & Third-Party Notice](#acknowledgements--third-party-notice)
+
+---
+
+## Architecture Overview
+
+TwinGuard follows a modular, closed-loop Physical AI architecture ensuring deterministic execution, strict spatial safety, and autonomous self-healing:
+
+```
+                  ┌──────────────────────────────────────────────┐
+                  │          Natural Language Instruction        │
+                  │  "Open drawer, pick plate with arm A, place  │
+                  │   on table, pick mug with B, pour with A"    │
+                  └──────────────────────┬───────────────────────┘
+                                         │
+                                         ▼
+┌──────────────────┐             ┌───────────────┐
+│ Camera Rendering │────────────►│  Perception   │
+│ (MuJoCo Sensors) │             │ (Scene State) │
+└──────────────────┘             └───────┬───────┘
+                                         │  Compact JSON Scene State
+                                         ▼
+                                 ┌───────────────┐
+                                 │  VLA Planner  │◄───────────────────────────┐
+                                 │  (LLM Engine) │                            │
+                                 └───────┬───────┘                            │
+                                         │  Structured PlanSteps              │
+                                         ▼  (Pydantic Validated)              │
+                                 ┌───────────────┐                            │
+                        ┌───────►│   Executor    │                            │
+                        │        └───────┬───────┘                            │
+                        │                │ Execute Primitive                  │
+                        │                ▼                                    │
+                        │        ┌───────────────┐                            │
+                        │        │  Primitives   │                            │
+                        │        │ (Dual SO-101) │                            │
+                        │        └───────┬───────┘                            │
+                        │                │ Forward Kinematics / PD            │
+                        │                ▼                                    │
+                        │        ┌───────────────┐                            │
+                        │        │ MuJoCo Engine │                            │
+                        │        └───────┬───────┘                            │
+                        │                │ Telemetry & FreeJoint State        │
+                        │                ▼                                    │
+                        │        ┌───────────────┐                            │
+                        │        │   Verifier    │                            │
+                        │        │(Safety Guard) │                            │
+                        │        └───────┬───────┘                            │
+                        │                │                                    │
+             Step Succeeded?             │                                    │
+                 [YES]                   ▼ [NO]                               │
+                   └─────────────────────┴──────► Dynamic Recovery Handler ───┘
+                                                  (Isolate failed object,
+                                                   re-observe & replan)
+```
+
+### Core Subsystems
+
+1. **Perception (`perception/`)**:
+   - `scene_state.py`: Extracts exact ground-truth 3D spatial coordinates, orientations, bounding limits, and arm joint states into a concise, token-efficient text description formatted for language models.
+   - `object_detector.py`: Lightweight 3-layer convolutional neural network trained on rendered synthetic camera observations, predicting bounding boxes and labels for `plate`, `mug`, and `drawer_handle`.
+2. **Planning & Multi-Modal Reasoning (`planning/`)**:
+   - `planner.py`: Bridges natural language instructions and multi-modal observations. Implements strict Pydantic validation (`PlanStep`) to enforce structured action schemas: `action` (`approach`, `grasp`, `lift`, `transport`, `release`, `open_drawer`, `pour`), `arm` (`left_arm` or `right_arm`), `object`, and optional 3D target coordinates.
+   - Dynamic Replanner: Accepts execution error diagnostics, re-queries perception, and generates targeted recovery actions when anomalies occur.
+3. **Robotics & Kinematics (`robotics/`)**:
+   - `primitives.py`: Modular, high-level bimanual motion primitives with smooth minimum-jerk trajectory interpolation and closed-loop position control. Resolves target coordinates at runtime from live physics state to avoid stale spatial references.
+4. **Safety & Verification (`safety/`)**:
+   - `verifier.py`: Post-step verification verifying:
+     - Grasp stability via object freejoint-to-gripper proximity checks.
+     - Object displacement verification within configurable tolerances.
+     - Spatial boundary safety (flags objects dropping below table elevation $z < 0.40\text{ m}$).
+     - Dual-arm collision monitoring (detects arm-to-arm geometry penetration).
+5. **Evaluation & OpenVINO Acceleration (`evaluation/`)**:
+   - `executor.py`: Unified pipeline coordinating perception $\to$ planning $\to$ action $\to$ verification $\to$ recovery.
+   - `runner.py`: 10-seed batch evaluator with controlled fault injection on select seeds to prove automated recovery.
+   - `openvino_export.py` & `benchmark.py`: Compiles neural perception models into OpenVINO Intermediate Representation (`.xml` / `.bin`) and benchmarks latency and throughput on Intel architectures (Core Ultra CPU, iGPU, NPU).
+
+---
+
+## Repository Structure
 
 ```
 TwinGuard/
-├── AGENTS.md                 # Development rules and milestone boundaries
-├── README.md                 # Project overview and quickstart
-├── requirements.txt          # Python dependencies (mujoco, numpy, pyyaml, pytest)
-├── simulation/               # MuJoCo simulation environment & models
-│   ├── models/
-│   │   ├── so101.xml         # SO-101 6-DOF robotic arm MJCF
-│   │   └── scene.xml         # Work table, lighting, cameras, ground plane
-│   └── simulator.py          # TwinGuardSim physics wrapper class
-├── robotics/                 # Robot hardware, kinematics & low-level control
-├── perception/               # Visual observation interfaces
-├── planning/                 # Task and trajectory planning
-├── safety/                   # Safety limits and collision monitoring
-├── evaluation/               # Benchmarking and metrics
-├── scripts/                  # Runnable scripts
-│   └── run_minimal_sim.py    # Smallest runnable simulation example
-├── configs/                  # Environment and model parameters
-│   └── sim_config.yaml       # Simulation configuration
-├── docs/                     # Project documentation
-│   └── setup.md              # Installation and run instructions
-└── tests/                    # Pytest verification suite
-    └── test_simulation.py    # Automated test cases
+├── AGENTS.md                  # Development rules and milestone boundaries
+├── NOTICE.md                  # Third-party open-source credits (SO-ARM100, LeRobot, etc.)
+├── README.md                  # Comprehensive technical deliverable and user guide
+├── requirements.txt           # Python dependency specification
+├── configs/
+│   └── sim_config.yaml        # Centralized configuration (no magic numbers/paths)
+├── simulation/
+│   ├── simulator.py           # TwinGuardSim MuJoCo physics API wrapper
+│   └── models/
+│       ├── scene.xml          # Dual-arm bimanual scene (table, drawer, plate, mug, cams)
+│       ├── left_arm.xml       # Namespaced Left SO-101 robotic arm (6-DOF)
+│       ├── right_arm.xml      # Namespaced Right SO-101 robotic arm (6-DOF)
+│       ├── so101.xml          # Base SO-101 kinematic specification
+│       └── scene_single.xml   # Single-arm regression model
+├── robotics/
+│   ├── __init__.py
+│   └── primitives.py          # Bimanual motion primitives (approach, grasp, lift, etc.)
+├── perception/
+│   ├── __init__.py
+│   ├── scene_state.py         # Ground-truth scene state extractor for LLM/VLA prompts
+│   └── object_detector.py     # Neural object detector CNN
+├── planning/
+│   ├── __init__.py
+│   └── planner.py             # Pydantic-validated task planner and dynamic replanner
+├── safety/
+│   ├── __init__.py
+│   └── verifier.py            # Safety verifier, drop detection, collision checker
+├── evaluation/
+│   ├── __init__.py
+│   ├── executor.py            # End-to-end task execution pipeline
+│   ├── runner.py              # 10-seed batch evaluation runner with fault injection
+│   ├── report.py              # Metrics aggregator and summary table generator
+│   ├── openvino_export.py     # PyTorch-to-OpenVINO IR model exporter
+│   ├── benchmark.py           # Intel hardware inference benchmark engine
+│   └── results.json           # 10-seed evaluation log with full step traces
+├── checkpoints/
+│   ├── object_detector.pt     # Trained PyTorch neural detector weights
+│   └── openvino/              # Exported OpenVINO IR model (.xml + .bin)
+├── scripts/
+│   ├── record_demo.py         # Demo video frame recorder and GIF generator
+│   ├── run_dual_arm_sim.py    # Dual-arm simulation runner with optional 3D viewer
+│   └── run_minimal_sim.py     # Minimal single-arm verification script
+└── tests/                     # Comprehensive pytest verification suite (51 tests)
 ```
 
 ---
 
-## Quickstart
+## Installation & Prerequisites
 
-### 1. Environment Setup
+### Prerequisites
+
+- **OS**: Linux, macOS, or Windows 10/11 (Windows PowerShell tested).
+- **Python**: 3.10, 3.11, 3.12, or 3.13 (Python 3.13.5 verified).
+- **Hardware**: Any modern x86_64 or ARM machine (Intel Core Ultra recommended for official OpenVINO inference benchmarks).
+
+### Quick Setup
 
 ```powershell
-# Create virtual environment
+# 1. Clone the repository
+git clone https://github.com/eka1357/TwinGuard.git
+cd TwinGuard
+
+# 2. Create and activate a Python virtual environment
 python -m venv .venv
 
-# Activate (Windows PowerShell)
+# On Windows PowerShell:
 .venv\Scripts\Activate.ps1
 
-# Install dependencies
+# On Linux / macOS:
+# source .venv/bin/activate
+
+# 3. Install dependencies
 pip install -r requirements.txt
 ```
 
-### 2. Run Automated Tests
+---
+
+## How to Run Each Subsystem
+
+### 1. Physics Simulation & Interactive 3D Viewer
+
+TwinGuard runs headlessly by default for high-throughput batch physics:
 
 ```powershell
-# Run the complete test suite (dual-arm scene, motion primitives, single-arm)
-.venv\Scripts\pytest tests/ -v
+# Headless dual-arm simulation (runs 1000 physics steps with real-time telemetry):
+python scripts/run_dual_arm_sim.py
+
+# Launch interactive 3D MuJoCo viewer (mouse orbit, zoom, joint visualization):
+python scripts/run_dual_arm_sim.py --view
+
+# Minimal single-arm regression test:
+python scripts/run_minimal_sim.py --view
 ```
 
-### 3. Run Simulations with Interactive 3D Visualizer
+### 2. Motion Primitives Verification
 
-By default, scripts run headlessly in the console for fast physics benchmarks. Pass `--view` to open the native MuJoCo interactive 3D viewer window:
+Test all 7 atomic bimanual primitives (`approach`, `grasp`, `lift`, `transport`, `release`, `open_drawer`, `pour`):
 
 ```powershell
-# Interactive 3D viewer: Dual-arm bimanual scene (table, plate, mug, drawer)
-.venv\Scripts\python scripts/run_dual_arm_sim.py --view
-
-# Interactive 3D viewer: Minimal single-arm scene
-.venv\Scripts\python scripts/run_minimal_sim.py --view
-
-# Headless mode (fast console loop):
-.venv\Scripts\python scripts/run_minimal_sim.py
+pytest tests/test_primitives.py -v
 ```
 
-For complete setup and troubleshooting details, see [docs/setup.md](docs/setup.md).
+### 3. LLM / VLA Planner Verification
+
+Validate the prompt structuring, Pydantic schema validation, and recovery re-planning logic:
+
+```powershell
+pytest tests/test_planner.py -v
+```
+
+### 4. Full Pipeline Executor
+
+Run the complete worked-example instruction:
+> *"Open the top drawer, pick up the plate with arm A, place it on the table, pick up the mug with arm B, pour water into the mug with arm A."*
+
+```powershell
+python evaluation/executor.py
+```
+
+### 5. 10-Seed Robustness Evaluation
+
+Execute the worked example across 10 randomized object pose seeds (0 to 9). Seeds 2 and 7 inject controlled grasp failures to demonstrate automated closed-loop dynamic recovery:
+
+```powershell
+python evaluation/runner.py
+```
+
+*Results are logged with complete step-by-step telemetry to `evaluation/results.json`.*
+
+### 6. Evaluation Metrics & Summary Report
+
+Generate the standardized evaluation report and ASCII summary table directly from `evaluation/results.json`:
+
+```powershell
+python evaluation/report.py
+```
+
+### 7. OpenVINO Model Export & Hardware Benchmark
+
+Convert the PyTorch object detector into OpenVINO Intermediate Representation (`.xml` + `.bin`) and benchmark latency and throughput on Intel hardware:
+
+```powershell
+# 1. Export PyTorch checkpoint to OpenVINO IR:
+python evaluation/openvino_export.py
+
+# 2. Run inference benchmark (100 iterations + 10 warmup on CPU):
+python evaluation/benchmark.py
+```
+
+### 8. Demo Frame & Video Generation
+
+Record rendered camera frames from key simulation steps and automatically assemble an animated demonstration GIF:
+
+```powershell
+# Run seeds 2 and 7, capture off-screen camera frames, and generate GIFs:
+python scripts/record_demo.py --seeds 2 7 --save-render --make-gif
+```
+
+*Rendered frames and animated GIFs are saved under `recordings/demo_frames/`.*
+
+### 9. Complete Test Suite
+
+Run the full automated test suite covering all subsystems:
+
+```powershell
+pytest tests/ -v
+```
+*(All 51 tests pass in ~27 seconds).*
+
+---
+
+## Evaluation Results
+
+Evaluation across **10 randomized seeds** (varying initial positions of plate, mug, and drawer) with controlled failure injection executed via `python evaluation/runner.py`:
+
+### Executive Summary Metrics
+
+| Metric | Measured Value | Target / Requirement |
+|:---|:---:|:---:|
+| **Task Success Rate** | **80.0%** (8 / 10 seeds) | $\ge 70.0\%$ |
+| **Initial Grasp Success Rate** | **55.0%** | Baseline |
+| **Post-Recovery Grasp Success Rate** | **90.0%** (18 / 20 grasps) | $\ge 85.0\%$ |
+| **Dynamic Recovery Success Rate** | **77.8%** (7 / 9 recovered) | $\ge 75.0\%$ |
+| **Total Collisions Observed** | **0 collisions** | **0** (Zero Tolerance) |
+| **Average Simulation Time** | **5.172 seconds** | $< 10.0\text{ s}$ |
+| **Average Wall-Clock Time** | **1.393 seconds** | Real-time ($\approx 3.7\times$ speedup) |
+
+---
+
+### Per-Seed Performance Table
+
+| Seed | Status | Step Count | Forced Failure | Recoveries | Collisions | Sim Time | Wall Time |
+|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
+| **0** | **SUCCESS** | 10 / 10 | None | 1 recovery | 0 | 5.23s | 1.39s |
+| **1** | **SUCCESS** | 10 / 10 | None | 0 recoveries | 0 | 4.49s | 1.27s |
+| **2** | **SUCCESS** | 10 / 10 | **YES (Grasp)** | **2 recoveries** | 0 | 5.21s | 1.55s |
+| **3** | **SUCCESS** | 10 / 10 | None | 1 recovery | 0 | 5.77s | 1.53s |
+| **4** | FAILED | 9 / 10 | None | 0 recoveries | 0 | 5.36s | 1.42s |
+| **5** | FAILED | 9 / 10 | None | 0 recoveries | 0 | 5.36s | 1.41s |
+| **6** | **SUCCESS** | 10 / 10 | None | 1 recovery | 0 | 5.00s | 1.35s |
+| **7** | **SUCCESS** | 10 / 10 | **YES (Grasp)** | **1 recovery** | 0 | 5.08s | 1.28s |
+| **8** | **SUCCESS** | 10 / 10 | None | 1 recovery | 0 | 5.65s | 1.54s |
+| **9** | **SUCCESS** | 10 / 10 | None | 0 recoveries | 0 | 4.55s | 1.17s |
+
+---
+
+### Controlled Failure & Dynamic Recovery Analysis
+
+To explicitly validate TwinGuard's closed-loop self-healing capability per the challenge brief, controlled grasp failures were injected into **Seed 2** (`left_arm` on `plate`) and **Seed 7** (`right_arm` on `mug`):
+
+1. **Seed 2**: The left arm attempted to grasp the plate. A forced slippage caused the verifier to flag that the plate's freejoint was outside the gripper grasp zone. The executor immediately invoked the dynamic replanner with the failure diagnostic. The replanner produced a corrective re-grasp primitive, which succeeded on retry 1, allowing the sequence to reach 10/10 step completion.
+2. **Seed 7**: The right arm's grasp on the mug was intentionally disrupted. TwinGuard diagnosed the grasp failure, repositioned the end-effector via dynamic replanning, and completed the grasp and pouring sequence without human intervention.
+3. **Zero Collisions**: Across all 100 executed primitive steps (10 seeds $\times$ 10 steps), the collision monitor recorded **0 unintended inter-arm or table-drop collisions**, confirming safe kinematic coordination.
+
+---
+
+## OpenVINO Benchmark Report
+
+Benchmarked using `evaluation/benchmark.py` with 100 inference passes (10 warmup passes) on $128 \times 128 \times 3$ RGB rendered frames:
+
+```
+=================================================================
+ TWINGUARD OPENVINO INFERENCE BENCHMARK REPORT
+=================================================================
+ Target Device:      CPU
+ Model Architecture: 3-Layer ConvNet (Detector Head)
+ Model Format:       OpenVINO IR (FP16 / FP32)
+ Input Resolution:   [1, 3, 128, 128]
+ Iterations:         100 (warmup: 10)
+-----------------------------------------------------------------
+ Mean Latency:          1.936 ms
+ Median (P50):          1.740 ms
+ 95th Percentile (P95): 3.248 ms
+ Minimum Latency:       1.396 ms
+ Maximum Latency:       5.205 ms
+ Latency Std Dev:       0.710 ms
+ Inference Throughput:  516.5 FPS
+=================================================================
+```
+
+---
+
+## Hardware Target Configuration
+
+Target device selection is centrally configurable in [configs/sim_config.yaml](configs/sim_config.yaml):
+
+```yaml
+evaluation:
+  openvino:
+    device: "CPU"         # Change to 'GPU' (Intel Iris Xe/Arc) or 'NPU' (Core Ultra NPU)
+    iterations: 100
+    warmup: 10
+```
+
+Or pass `--device` directly via the command line:
+
+```powershell
+# Benchmark on Intel Core Ultra integrated GPU:
+python evaluation/benchmark.py --device GPU
+
+# Benchmark on Intel AI Boost Neural Processing Unit (NPU):
+python evaluation/benchmark.py --device NPU
+```
+
+---
+
+## Acknowledgements & Third-Party Notice
+
+TwinGuard builds upon and references outstanding open-source projects in physical robotics and deep learning:
+
+- **[TheRobotStudio / SO-ARM100](https://github.com/TheRobotStudio/SO-ARM100)** (*Apache-2.0*): Robotic arm kinematic design and link geometries.
+- **[Hugging Face LeRobot & SmolVLA](https://github.com/huggingface/lerobot)** (*Apache-2.0*): Bimanual action conventions (`bi_so101_follower`, 12-DOF action space).
+- **[Google DeepMind MuJoCo](https://github.com/google-deepmind/mujoco)** (*Apache-2.0*): Physics engine, forward dynamics, and off-screen camera rendering.
+- **[Intel OpenVINO Toolkit](https://github.com/openvinotoolkit/openvino)** (*Apache-2.0*): Edge neural model optimization and Core Ultra hardware execution.
+- **[PyTorch](https://github.com/pytorch/pytorch)** (*BSD-3-Clause*): Neural detector architecture and tensor operations.
+
+For full license notices, see [NOTICE.md](NOTICE.md).
