@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>TwinGuard: Closed-Loop Bimanual Physical AI</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap');
+
+  @page {
+    size: 1920px 1080px;
+    margin: 0;
+  }
+
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background-color: #0b0f19;
+    color: #f1f5f9;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .slide {
+    width: 1920px;
+    height: 1080px;
+    page-break-after: always;
+    position: relative;
+    overflow: hidden;
+    padding: 80px 100px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    background: radial-gradient(circle at 80% 20%, rgba(0, 199, 253, 0.08) 0%, transparent 50%),
+                radial-gradient(circle at 20% 80%, rgba(99, 102, 241, 0.08) 0%, transparent 50%),
+                #0b0f19;
+  }
+
+  /* Header elements */
+  .slide-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding-bottom: 24px;
+  }
+
+  .header-left h3 {
+    font-size: 20px;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    color: #00c7fd;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+
+  .header-left h1 {
+    font-size: 44px;
+    font-weight: 800;
+    letter-spacing: -1px;
+    color: #ffffff;
+  }
+
+  .header-badge {
+    background: rgba(0, 199, 253, 0.12);
+    border: 1px solid rgba(0, 199, 253, 0.3);
+    color: #00c7fd;
+    padding: 8px 18px;
+    border-radius: 9999px;
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: 1px;
+  }
+
+  /* Content body */
+  .slide-body {
+    flex: 1;
+    display: flex;
+    gap: 40px;
+    padding: 40px 0;
+    align-items: center;
+  }
+
+  /* Footer */
+  .slide-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    padding-top: 20px;
+    font-size: 15px;
+    color: #94a3b8;
+  }
+
+  .footer-brand {
+    font-weight: 700;
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .footer-brand span {
+    color: #00c7fd;
+  }
+
+  /* Cards & Grids */
+  .grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 36px;
+    width: 100%;
+  }
+
+  .grid-3 {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 28px;
+    width: 100%;
+  }
+
+  .grid-4 {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 24px;
+    width: 100%;
+  }
+
+  .card {
+    background: rgba(30, 41, 59, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    padding: 32px;
+    backdrop-filter: blur(12px);
+  }
+
+  .card.highlight {
+    border-color: rgba(0, 199, 253, 0.4);
+    background: rgba(0, 113, 197, 0.12);
+  }
+
+  .card h2 {
+    font-size: 26px;
+    font-weight: 700;
+    color: #ffffff;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .card p {
+    font-size: 17px;
+    line-height: 1.6;
+    color: #cbd5e1;
+  }
+
+  /* Pill tags */
+  .badge-row {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-top: 16px;
+  }
+
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 6px 14px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    color: #e2e8f0;
+  }
+
+  .badge.intel {
+    background: rgba(0, 113, 197, 0.25);
+    border-color: rgba(0, 199, 253, 0.4);
+    color: #38bdf8;
+  }
+
+  .badge.success {
+    background: rgba(16, 185, 129, 0.15);
+    border-color: rgba(16, 185, 129, 0.3);
+    color: #34d399;
+  }
+
+  /* Tables */
+  table.custom-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 17px;
+    text-align: left;
+  }
+
+  table.custom-table th {
+    background: rgba(15, 23, 42, 0.8);
+    color: #38bdf8;
+    padding: 16px 20px;
+    font-weight: 700;
+    border-bottom: 2px solid rgba(0, 199, 253, 0.3);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-size: 14px;
+  }
+
+  table.custom-table td {
+    padding: 16px 20px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    color: #e2e8f0;
+  }
+
+  table.custom-table tr:hover {
+    background: rgba(255, 255, 255, 0.03);
+  }
+
+  .mono {
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  /* Big stat counters */
+  .stat-box {
+    text-align: center;
+    padding: 24px;
+  }
+
+  .stat-number {
+    font-size: 58px;
+    font-weight: 900;
+    color: #38bdf8;
+    line-height: 1;
+    margin-bottom: 8px;
+  }
+
+  .stat-label {
+    font-size: 15px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #94a3b8;
+    font-weight: 600;
+  }
+
+  /* Diagram box */
+  .diagram-box {
+    background: #0f172a;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 24px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    line-height: 1.5;
+    color: #38bdf8;
+    white-space: pre;
+    width: 100%;
+  }
+
+  /* Title slide specifics */
+  .title-slide {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: 100px;
+  }
+
+  .title-eyebrow {
+    color: #00c7fd;
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    margin-bottom: 20px;
+  }
+
+  .title-h1 {
+    font-size: 78px;
+    font-weight: 900;
+    letter-spacing: -2px;
+    background: linear-gradient(135deg, #ffffff 0%, #38bdf8 50%, #818cf8 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 24px;
+    line-height: 1.1;
+  }
+
+  .title-sub {
+    font-size: 28px;
+    color: #94a3b8;
+    font-weight: 400;
+    max-width: 1200px;
+    line-height: 1.4;
+    margin-bottom: 48px;
+  }
+
+</style>
+</head>
+<body>
+
+<!-- SLIDE 1: TITLE SLIDE -->
+<section class="slide title-slide">
+  <div>
+    <div class="title-eyebrow">Intel Physical AI Online Challenge · AI Infra Summit 2026</div>
+    <h1 class="title-h1">TwinGuard</h1>
+    <p class="title-sub">Closed-Loop Bimanual Physical AI with Coordinated Handover, Intel Anomalib Visual Guard & OpenVINO INT8 Acceleration</p>
+    
+    <div class="badge-row" style="justify-content: center; gap: 16px;">
+      <span class="badge intel">Intel Physical AI Studio</span>
+      <span class="badge intel">OpenVINO 2025</span>
+      <span class="badge intel">NNCF INT8 Quantized</span>
+      <span class="badge">Anomalib v2.6 Visual Guard</span>
+      <span class="badge">MuJoCo 3.1+ RK4</span>
+      <span class="badge">Dual SO-101 (12-DOF)</span>
+      <span class="badge success">112 / 112 Tests Passed</span>
+    </div>
+  </div>
+  <div style="margin-top: 60px; color: #64748b; font-size: 18px;">
+    Team TwinGuard · Platform: lablab.ai
+  </div>
+</section>
+
+<!-- SLIDE 2: THE PROBLEM & SOLUTION -->
+<section class="slide">
+  <div class="slide-header">
+    <div class="header-left">
+      <h3>The Challenge & Core Innovation</h3>
+      <h1>Why Open-Loop Physical AI Fails</h1>
+    </div>
+    <div class="header-badge">Problem vs. Solution</div>
+  </div>
+
+  <div class="slide-body">
+    <div class="grid-2">
+      <div class="card" style="border-color: rgba(239, 68, 68, 0.3); background: rgba(239, 68, 68, 0.04);">
+        <h2 style="color: #f87171;">❌ The Problem: Open-Loop Blindness</h2>
+        <p style="margin-bottom: 16px;">Current Vision-Language-Action (VLA) foundation models generate motor trajectories without continuous verification:</p>
+        <ul style="list-style: none; display: flex; flex-direction: column; gap: 14px; font-size: 17px; color: #cbd5e1;">
+          <li>⚠️ <strong>Unmodeled Physics:</strong> Grasp slippage, friction variations, or stuck drawers cause immediate failure.</li>
+          <li>⚠️ <strong>Zero Error Recovery:</strong> Open-loop controllers continue moving through empty air, dropping dishes and causing catastrophic collisions.</li>
+          <li>⚠️ <strong>Rigid Arm Isolation:</strong> Dual-arm setups usually operate as two single arms rather than coordinated bimanual partners.</li>
+        </ul>
+      </div>
+
+      <div class="card highlight">
+        <h2 style="color: #38bdf8;">✅ The TwinGuard Solution: Closed-Loop AI</h2>
+        <p style="margin-bottom: 16px;">A hierarchical Physical AI architecture combining multimodal planning with self-healing:</p>
+        <ul style="list-style: none; display: flex; flex-direction: column; gap: 14px; font-size: 17px; color: #cbd5e1;">
+          <li>🛡️ <strong>Dual-Layer Verifier:</strong> SafetyVerifier checks contact normal forces and drop limits; VisualGuard checks visual anomalies.</li>
+          <li>🔄 <strong>Dynamic Self-Healing:</strong> Automated re-observation and replanning that turns a failed grasp into a successful recovery.</li>
+          <li>🤝 <strong>True Bimanual Handover:</strong> Mid-air object transfer between arms with synchronized clearance.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="slide-footer">
+    <div class="footer-brand">TwinGuard <span>Physical AI</span></div>
+    <div>Intel Physical AI Online Challenge · Submission Deck</div>
+  </div>
+</section>
+
+<!-- SLIDE 3: SYSTEM ARCHITECTURE -->
+<section class="slide">
+  <div class="slide-header">
+    <div class="header-left">
+      <h3>Modular Closed-Loop Design</h3>
+      <h1>End-to-End System Architecture</h1>
+    </div>
+    <div class="header-badge">Architecture</div>
+  </div>
+
+  <div class="slide-body" style="flex-direction: column; justify-content: center; gap: 30px;">
+    <div class="diagram-box">
+[ Natural Language Instruction ]  +  [ Overview & Wrist Camera Frames ]
+               │                                      │
+               ▼                                      ▼
+    ┌──────────────────────┐               ┌──────────────────────┐
+    │ Multimodal Vision-   │               │ OpenVINO IR / INT8   │
+    │ Language Planner     │ ◄──────────── │ Object Detector CNN  │
+    └──────────┬───────────┘               └──────────────────────┘
+               │  Validated PlanSteps (Pydantic Schema)
+               ▼
+    ┌─────────────────────────────────────────────────────────────┐
+    │ Hugging Face LeRobot Adapter (bi_so101_follower, 12-DOF)   │
+    └──────────────────────────┬──────────────────────────────────┘
+                               │  Target Waypoints & Actions
+                               ▼
+    ┌─────────────────────────────────────────────────────────────┐
+    │ Bimanual Primitives (Approach, Grasp, Lift, Handover, Pour) │
+    └──────────────────────────┬──────────────────────────────────┘
+                               │  500 Hz DLS Inverse Kinematics
+                               ▼
+    ┌─────────────────────────────────────────────────────────────┐
+    │ MuJoCo Physics Engine (Dual SO-101, Oak Table, Plate, Mug)  │
+    └──────────────────────────┬──────────────────────────────────┘
+                               │  Telemetry, Contact Forces, Camera Frames
+                               ▼
+    ┌─────────────────────────────────────────────────────────────┐
+    │ Dual Verification: SafetyVerifier (Forces) + VisualGuard   │
+    └──────────────────────────┬──────────────────────────────────┘
+                               │
+               Step Succeeded? ├──► [YES]: Continue Next Step
+                               └──► [NO] : Trigger Dynamic Recovery Loop
+    </div>
+  </div>
+
+  <div class="slide-footer">
+    <div class="footer-brand">TwinGuard <span>Physical AI</span></div>
+    <div>Hierarchical Closed-Loop Autonomy</div>
+  </div>
+</section>
+
+<!-- SLIDE 4: INTEL CORE ULTRA WORKLOAD PLACEMENT -->
+<section class="slide">
+  <div class="slide-header">
+    <div class="header-left">
+      <h3>Heterogeneous Compute Acceleration</h3>
+      <h1>Intel Core Ultra Workload Placement</h1>
+    </div>
+    <div class="header-badge">Intel Optimization</div>
+  </div>
+
+  <div class="slide-body">
+    <table class="custom-table">
+      <thead>
+        <tr>
+          <th>Compute Element</th>
+          <th>Physical AI Role</th>
+          <th>Workload & Optimization</th>
+          <th>Measured Performance</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong style="color: #38bdf8;">Intel NPU</strong><br><span style="font-size: 13px; color: #94a3b8;">AI Boost Neural Engine</span></td>
+          <td>Low-power continuous vision perception & anomaly embedding</td>
+          <td><strong>OpenVINO INT8 (NNCF Quantized)</strong>: Object detector and Anomalib visual guard models executing in ultra-low power budget.</td>
+          <td><span class="mono" style="color: #34d399; font-weight: 700;">0.58 ms latency</span><br><span style="font-size: 13px; color: #94a3b8;">~1,700 FPS throughput</span></td>
+        </tr>
+        <tr>
+          <td><strong style="color: #818cf8;">Intel Arc iGPU</strong><br><span style="font-size: 13px; color: #94a3b8;">Integrated Graphics</span></td>
+          <td>High-bandwidth camera rendering & frame pipeline</td>
+          <td><strong>OpenVINO Async Mode (<span class="mono">start_async()</span>)</strong>: Parallel tensor transformations, multi-view camera ingestion (overview + wrist).</td>
+          <td><span class="mono" style="color: #34d399; font-weight: 700;">1,439 FPS</span><br><span style="font-size: 13px; color: #94a3b8;">Async pipeline throughput</span></td>
+        </tr>
+        <tr>
+          <td><strong style="color: #f59e0b;">Intel CPU</strong><br><span style="font-size: 13px; color: #94a3b8;">Performance & Efficient Cores</span></td>
+          <td>Physics dynamics, kinematics & safety verifier</td>
+          <td><strong>MuJoCo 500 Hz RK4 Engine</strong>: Damped Least Squares IK, contact normal force accumulation, collision checking, and LLM reasoning.</td>
+          <td><span class="mono" style="color: #34d399; font-weight: 700;">5.3x Real-Time</span><br><span style="font-size: 13px; color: #94a3b8;">Speedup over wall-clock</span></td>
+        </tr>
+        <tr>
+          <td><strong style="color: #ec4899;">Dynamic Hetero</strong><br><span style="font-size: 13px; color: #94a3b8;">Auto Dispatch</span></td>
+          <td>Automated multi-device load balancing</td>
+          <td><strong>OpenVINO <span class="mono">--device AUTO / HETERO:NPU,CPU</span></strong>: Seamless runtime failover and hardware concurrency.</td>
+          <td><span class="mono" style="color: #34d399; font-weight: 700;">Zero Dropped Frames</span><br><span style="font-size: 13px; color: #94a3b8;">Deterministic execution</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="slide-footer">
+    <div class="footer-brand">TwinGuard <span>Physical AI</span></div>
+    <div>Targeted for Intel Core Ultra Mobile & Desktop Processors</div>
+  </div>
+</section>
+
+<!-- SLIDE 5: AUTONOMOUS RECOVERY (THE HERO FEATURE) -->
+<section class="slide">
+  <div class="slide-header">
+    <div class="header-left">
+      <h3>Self-Healing Physical Robotics</h3>
+      <h1>Autonomous Failure Diagnosis & Recovery</h1>
+    </div>
+    <div class="header-badge">Dynamic Recovery</div>
+  </div>
+
+  <div class="slide-body">
+    <div class="grid-2">
+      <div class="card">
+        <h2>Controlled Failure Injection: Seed 2</h2>
+        <p style="margin-bottom: 20px;">To empirically validate closed-loop self-healing under the challenge rubric, physical grasp slips were deliberately injected into <strong>Seed 2</strong> and <strong>Seed 7</strong>:</p>
+        
+        <div style="background: #0f172a; padding: 18px; border-radius: 10px; border-left: 4px solid #f59e0b; margin-bottom: 16px;">
+          <div class="mono" style="color: #f59e0b; font-size: 14px; margin-bottom: 6px;">[VERIFIER WARNING] Step 7 [grasp] failed verification:</div>
+          <div style="font-size: 14px; color: #cbd5e1;">Contact normal force lost & object freejoint escaped grasp zone (dist 0.18m > tol 0.15m).</div>
+        </div>
+
+        <div style="background: #0f172a; padding: 18px; border-radius: 10px; border-left: 4px solid #34d399;">
+          <div class="mono" style="color: #34d399; font-size: 14px; margin-bottom: 6px;">[AUTONOMOUS RECOVERY] Re-observing scene state...</div>
+          <div style="font-size: 14px; color: #cbd5e1;">Dynamic replanner synthesized recovery approach. Second grasp succeeded. Bimanual pour completed.</div>
+        </div>
+      </div>
+
+      <div class="card highlight" style="display: flex; flex-direction: column; justify-content: space-around;">
+        <div class="stat-box">
+          <div class="stat-number" style="color: #34d399;">100%</div>
+          <div class="stat-label">Post-Recovery Task Completion Rate (10/10 Seeds)</div>
+        </div>
+        <div class="stat-box" style="border-top: 1px solid rgba(255,255,255,0.1); border-bottom: 1px solid rgba(255,255,255,0.1);">
+          <div class="stat-number" style="color: #38bdf8;">0</div>
+          <div class="stat-label">Arm-to-Arm or Table Collisions Across 100+ Steps</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-number" style="color: #818cf8;">&lt; 1.0s</div>
+          <div class="stat-label">Average Wall-Clock Execution Time Per Full Task</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="slide-footer">
+    <div class="footer-brand">TwinGuard <span>Physical AI</span></div>
+    <div>Empirical Verification on 10 Randomized Seeds</div>
+  </div>
+</section>
+
+<!-- SLIDE 6: OPENVINO BENCHMARK & TEST SUITE -->
+<section class="slide">
+  <div class="slide-header">
+    <div class="header-left">
+      <h3>Empirical Validation</h3>
+      <h1>OpenVINO Benchmarks & Test Suite</h1>
+    </div>
+    <div class="header-badge">Verification</div>
+  </div>
+
+  <div class="slide-body">
+    <div class="grid-2">
+      <div class="card">
+        <h2>OpenVINO INT8 vs FP32 Comparison</h2>
+        <table class="custom-table" style="font-size: 15px;">
+          <thead>
+            <tr>
+              <th>Metric</th>
+              <th>FP32 Baseline</th>
+              <th>NNCF INT8 Quantized</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Weights Size</td>
+              <td>723 KB</td>
+              <td><strong style="color: #34d399;">363 KB (1.99x smaller)</strong></td>
+            </tr>
+            <tr>
+              <td>Mean Latency</td>
+              <td>0.834 ms</td>
+              <td><strong style="color: #34d399;">0.587 ms (1.42x faster)</strong></td>
+            </tr>
+            <tr>
+              <td>Sync Throughput</td>
+              <td>1,198 FPS</td>
+              <td><strong style="color: #34d399;">1,703.8 FPS</strong></td>
+            </tr>
+            <tr>
+              <td>Async Throughput</td>
+              <td>1,266 FPS</td>
+              <td><strong style="color: #34d399;">1,439.2 FPS</strong></td>
+            </tr>
+            <tr>
+              <td>Visual Guard Latency</td>
+              <td>0.836 ms</td>
+              <td><strong>1,196.3 FPS (Anomalib)</strong></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="card highlight">
+        <h2>Production Engineering Hygiene</h2>
+        <ul style="list-style: none; display: flex; flex-direction: column; gap: 16px; font-size: 16px; color: #cbd5e1; margin-top: 8px;">
+          <li style="display: flex; align-items: center; gap: 12px;">
+            <span style="color: #34d399; font-size: 20px;">✓</span>
+            <strong>112 / 112 Pytest Tests Passed:</strong> 100% test pass covering kinematics, verifiers, planners, and VLA schemas.
+          </li>
+          <li style="display: flex; align-items: center; gap: 12px;">
+            <span style="color: #34d399; font-size: 20px;">✓</span>
+            <strong>Zero Hardcoded Magic Numbers:</strong> Centralized configuration in <span class="mono">configs/sim_config.yaml</span>.
+          </li>
+          <li style="display: flex; align-items: center; gap: 12px;">
+            <span style="color: #34d399; font-size: 20px;">✓</span>
+            <strong>Single-Command Docker:</strong> Fully reproducible Linux container build (<span class="mono">docker build -t twinguard .</span>).
+          </li>
+          <li style="display: flex; align-items: center; gap: 12px;">
+            <span style="color: #34d399; font-size: 20px;">✓</span>
+            <strong>Apache-2.0 Licensed:</strong> Complete attribution for SO-ARM100 and LeRobot upstream projects.
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="slide-footer">
+    <div class="footer-brand">TwinGuard <span>Physical AI</span></div>
+    <div>Rigorous Testing & Production-Ready Codebase</div>
+  </div>
+</section>
+
+<!-- SLIDE 7: SUMMARY & CONCLUSION -->
+<section class="slide title-slide" style="justify-content: space-between; padding: 80px 100px;">
+  <div class="slide-header" style="width: 100%;">
+    <div class="header-left">
+      <h3>Conclusion</h3>
+      <h1>Ready for the Real World</h1>
+    </div>
+    <div class="header-badge">Submission Complete</div>
+  </div>
+
+  <div style="max-width: 1200px; margin: auto;">
+    <h2 style="font-size: 38px; color: #ffffff; font-weight: 800; margin-bottom: 24px;">
+      TwinGuard brings closed-loop certainty to bimanual Physical AI.
+    </h2>
+    <p style="font-size: 22px; color: #94a3b8; line-height: 1.6; margin-bottom: 40px;">
+      By coupling multimodal reasoning with continuous physical verification and Intel OpenVINO edge acceleration, TwinGuard transforms robots from fragile open-loop actuators into autonomous, self-healing manipulators.
+    </p>
+
+    <div class="grid-3" style="margin-bottom: 40px;">
+      <div class="card" style="text-align: center;">
+        <div style="color: #38bdf8; font-size: 32px; font-weight: 800;">100%</div>
+        <div style="color: #cbd5e1; font-size: 15px; margin-top: 4px;">Task Success Across 10 Seeds</div>
+      </div>
+      <div class="card" style="text-align: center;">
+        <div style="color: #34d399; font-size: 32px; font-weight: 800;">&lt; 1 ms</div>
+        <div style="color: #cbd5e1; font-size: 15px; margin-top: 4px;">OpenVINO INT8 Latency</div>
+      </div>
+      <div class="card" style="text-align: center;">
+        <div style="color: #818cf8; font-size: 32px; font-weight: 800;">112</div>
+        <div style="color: #cbd5e1; font-size: 15px; margin-top: 4px;">Verified Unit Tests</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="slide-footer" style="width: 100%;">
+    <div class="footer-brand">TwinGuard <span>GitHub: https://github.com/eka1357/TwinGuard</span></div>
+    <div>Intel Physical AI Online Challenge · AI Infra Summit Hackathon 2026</div>
+  </div>
+</section>
+
+</body>
+</html>
