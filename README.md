@@ -197,14 +197,20 @@ pip install -r requirements.txt
 
 ### 1. Physics Simulation & Interactive 3D Viewer
 
-TwinGuard runs headlessly by default for high-throughput batch physics:
+TwinGuard provides a high-fidelity studio environment with realistic warm oak wood grain textures, high-contrast ceramic manipulation objects, and detailed SO-101 robotic arm assemblies:
 
 ```powershell
-# Headless dual-arm simulation (runs 1000 physics steps with real-time telemetry):
-python scripts/run_dual_arm_sim.py
-
-# Launch interactive 3D MuJoCo viewer (mouse orbit, zoom, joint visualization):
+# Launch interactive 3D MuJoCo viewer (watch coordinated bimanual manipulation live in 3D):
 python scripts/run_dual_arm_sim.py --view
+
+# Watch full closed-loop VLA perception + LLM planning + dynamic recovery live in 3D:
+python evaluation/executor.py --view
+
+# Headless dual-arm simulation (runs 1000 physics steps with real-time telemetry):
+python scripts/run_dual_arm_sim.py --steps 1000
+
+# Run joint oscillation demo across full arm limits:
+python scripts/run_dual_arm_sim.py --view --oscillate
 
 # Minimal single-arm regression test:
 python scripts/run_minimal_sim.py --view
@@ -305,12 +311,12 @@ Evaluation across **10 randomized seeds** (varying initial positions of plate, m
 | Metric | Measured Value | Target / Requirement | Status |
 |:---|:---:|:---:|:---:|
 | **Task Success Rate** | **100.0%** (10 / 10 seeds) | $\ge 70.0\%$ | **Exceeded** |
-| **Initial Grasp Success Rate** | **75.0%** | Baseline | **Robust** |
+| **Initial Grasp Success Rate** | **90.0%** (18 / 20 grasps) | Baseline | **Robust** |
 | **Post-Recovery Grasp Success Rate** | **100.0%** (20 / 20 grasps) | $\ge 85.0\%$ | **Perfect** |
-| **Dynamic Recovery Success Rate** | **100.0%** (5 / 5 recovered) | $\ge 75.0\%$ | **Perfect** |
+| **Dynamic Recovery Success Rate** | **100.0%** (2 / 2 recovered) | $\ge 75.0\%$ | **Perfect** |
 | **Total Collisions Observed** | **0 collisions** | **0** (Zero Tolerance) | **Flawless** |
-| **Average Simulation Time** | **4.764 seconds** | $< 10.0\text{ s}$ | **Optimal** |
-| **Average Wall-Clock Time** | **0.782 seconds** | Real-time ($\approx 6.1\times$ speedup) | **Ultra-Fast** |
+| **Average Simulation Time** | **4.525 seconds** | $< 10.0\text{ s}$ | **Optimal** |
+| **Average Wall-Clock Time** | **0.861 seconds** | Real-time ($\approx 5.3\times$ speedup) | **Ultra-Fast** |
 
 ---
 
@@ -318,16 +324,16 @@ Evaluation across **10 randomized seeds** (varying initial positions of plate, m
 
 | Seed | Status | Step Count | Forced Failure | Recoveries | Collisions | Sim Time | Wall Time |
 |:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
-| **0** | **SUCCESS** | 10 / 10 | None | 1 recovery | 0 | 5.23s | 1.11s |
-| **1** | **SUCCESS** | 10 / 10 | None | 0 recoveries | 0 | 4.49s | 0.71s |
-| **2** | **SUCCESS** | 10 / 10 | **YES (Grasp)** | **1 recovery** | 0 | 4.52s | 0.76s |
-| **3** | **SUCCESS** | 10 / 10 | None | 1 recovery | 0 | 5.77s | 1.00s |
-| **4** | **SUCCESS** | 10 / 10 | None | 0 recoveries | 0 | 4.56s | 0.67s |
-| **5** | **SUCCESS** | 10 / 10 | None | 0 recoveries | 0 | 4.51s | 0.60s |
-| **6** | **SUCCESS** | 10 / 10 | None | 1 recovery | 0 | 5.00s | 0.79s |
-| **7** | **SUCCESS** | 10 / 10 | **YES (Grasp)** | **1 recovery** | 0 | 4.53s | 0.73s |
-| **8** | **SUCCESS** | 10 / 10 | None | 0 recoveries | 0 | 4.47s | 0.74s |
-| **9** | **SUCCESS** | 10 / 10 | None | 0 recoveries | 0 | 4.55s | 0.71s |
+| **0** | **SUCCESS** | 10 / 10 | None | 0 recoveries | 0 | 4.53s | 1.13s |
+| **1** | **SUCCESS** | 10 / 10 | None | 0 recoveries | 0 | 4.50s | 0.89s |
+| **2** | **SUCCESS** | 10 / 10 | **YES (Grasp)** | **1 recovery** | 0 | 4.52s | 0.92s |
+| **3** | **SUCCESS** | 10 / 10 | None | 0 recoveries | 0 | 4.51s | 0.69s |
+| **4** | **SUCCESS** | 10 / 10 | None | 0 recoveries | 0 | 4.58s | 0.83s |
+| **5** | **SUCCESS** | 10 / 10 | None | 0 recoveries | 0 | 4.52s | 0.80s |
+| **6** | **SUCCESS** | 10 / 10 | None | 0 recoveries | 0 | 4.53s | 0.82s |
+| **7** | **SUCCESS** | 10 / 10 | **YES (Grasp)** | **1 recovery** | 0 | 4.54s | 1.01s |
+| **8** | **SUCCESS** | 10 / 10 | None | 0 recoveries | 0 | 4.47s | 0.79s |
+| **9** | **SUCCESS** | 10 / 10 | None | 0 recoveries | 0 | 4.56s | 0.74s |
 
 ---
 

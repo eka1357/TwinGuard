@@ -153,6 +153,7 @@ def run_plan(
     llm_caller: Optional[Callable] = None,
     max_recovery_attempts: int = 2,
     verbose: bool = True,
+    view: bool = False,
 ) -> Dict[str, Any]:
     """Execute natural language instruction through perception, planning, control, and safety verification.
 
@@ -163,6 +164,7 @@ def run_plan(
         llm_caller: Optional LLM callable for mocking or live model calls.
         max_recovery_attempts: Maximum recovery replanning attempts per failed step (default: 2).
         verbose: Whether to log execution details to console.
+        view: Whether to launch the interactive 3D MuJoCo viewer during execution.
 
     Returns:
         Dict containing execution metrics, logs, and overall status.
@@ -171,6 +173,18 @@ def run_plan(
     if sim is None:
         sim = TwinGuardSim(config_path=str(config_path) if config_path else None)
         sim.reset()
+
+    viewer_ctx = None
+    if view:
+        try:
+            import mujoco.viewer
+            viewer_ctx = mujoco.viewer.launch_passive(sim.model, sim.data)
+            sim.attach_viewer(viewer_ctx, realtime=True)
+            if verbose:
+                logger.info("[OK] MuJoCo interactive viewer launched. Live task visualization active.")
+        except Exception as viewer_err:
+            if verbose:
+                logger.warning(f"Could not launch MuJoCo viewer: {viewer_err}")
 
     primitives = MotionPrimitives(sim, config_path=config_path)
     verifier = SafetyVerifier(sim)
@@ -334,6 +348,10 @@ def run_plan(
         logger.info(f"Simulation Time: {results['sim_time']}s")
         logger.info("=" * 60)
 
+    if viewer_ctx is not None:
+        sim.detach_viewer()
+        viewer_ctx.close()
+
     if owns_sim:
         sim.close()
 
@@ -361,6 +379,11 @@ def main() -> None:
         default=2,
         help="Max recovery replanning attempts per failed step (default: 2)",
     )
+    parser.add_argument(
+        "--view",
+        action="store_true",
+        help="Launch the interactive MuJoCo passive viewer window to watch live bimanual manipulation",
+    )
     args = parser.parse_args()
 
     results = run_plan(
@@ -368,6 +391,7 @@ def main() -> None:
         config_path=args.config,
         max_recovery_attempts=args.max_retries,
         verbose=True,
+        view=args.view,
     )
 
     print("\nSTEP BY STEP EXECUTION STATUS:")

@@ -2,39 +2,59 @@
   <worldbody>
     <!-- Right SO-101 Arm Mount (mounted at z = 0.42 on table, y = -0.22) -->
     <body name="right_arm_base" pos="0 -0.22 0.42">
-      <geom name="right_arm_base_plate" type="cylinder" size="0.07 0.01" pos="0 0 0.01" material="arm_dark"/>
-      <geom name="right_arm_base_turret" type="cylinder" size="0.045 0.025" pos="0 0 0.045" material="joint_metal"/>
+      <!-- Waveshare mounting plate and turret base -->
+      <geom name="right_arm_base_plate" type="box" size="0.055 0.048 0.005" pos="0 0 0.005" material="arm_dark"/>
+      <geom name="right_arm_base_turret" type="cylinder" size="0.038 0.016" pos="0 0 0.022" material="servo_case"/>
+      <geom name="right_arm_base_hub" type="cylinder" size="0.030 0.012" pos="0 0 0.048" material="joint_metal"/>
 
       <!-- Joint 1: Base Yaw (Pan) -->
       <body name="right_arm_link_1_yaw" pos="0 0 0.07">
         <joint name="right_arm_joint_base_yaw" type="hinge" axis="0 0 1" range="-150 150"/>
-        <geom name="right_arm_link_1_visual" type="box" size="0.035 0.04 0.03" pos="0 0 0.03" material="arm_accent_right"/>
+        <!-- STS3215 pan servo chassis & bracket -->
+        <geom name="right_arm_link_1_visual" type="box" size="0.028 0.034 0.022" pos="0 0 0.022" material="arm_dark"/>
+        <geom name="right_arm_link_1_servo" type="box" size="0.022 0.028 0.026" pos="0 0 0.042" material="servo_case"/>
+        <geom name="right_arm_link_1_badge" type="box" size="0.029 0.002 0.012" pos="0 0.029 0.035" material="arm_accent_right"/>
 
         <!-- Joint 2: Shoulder Pitch -->
         <body name="right_arm_link_2_shoulder" pos="0 0 0.05">
           <joint name="right_arm_joint_shoulder_pitch" type="hinge" axis="0 1 0" range="-110 110"/>
-          <geom name="right_arm_shoulder_joint_hub" type="cylinder" size="0.025 0.03" quat="0.7071 0.7071 0 0" material="joint_metal"/>
-          <geom name="right_arm_upper_arm_link" type="capsule" fromto="0 0 0 0 0 0.14" size="0.022" material="arm_dark"/>
+          <!-- Shoulder pivot axle and drive horns -->
+          <geom name="right_arm_shoulder_joint_hub" type="cylinder" size="0.022 0.028" quat="0.7071 0.7071 0 0" material="joint_metal"/>
+          <!-- SO-101 upper arm dual-truss structural spar -->
+          <geom name="right_arm_upper_arm_link" type="capsule" fromto="0 0 0 0 0 0.14" size="0.016" material="arm_dark"/>
+          <geom name="right_arm_upper_spar_l" type="box" size="0.006 0.008 0.065" pos="0 0.018 0.07" material="arm_dark"/>
+          <geom name="right_arm_upper_spar_r" type="box" size="0.006 0.008 0.065" pos="0 -0.018 0.07" material="arm_dark"/>
+          <geom name="right_arm_upper_brace" type="box" size="0.008 0.018 0.006" pos="0 0 0.07" material="joint_metal"/>
 
           <!-- Joint 3: Elbow Pitch -->
           <body name="right_arm_link_3_elbow" pos="0 0 0.14">
             <joint name="right_arm_joint_elbow_pitch" type="hinge" axis="0 1 0" range="-120 120"/>
-            <geom name="right_arm_elbow_joint_hub" type="cylinder" size="0.022 0.025" quat="0.7071 0.7071 0 0" material="joint_metal"/>
-            <geom name="right_arm_forearm_link" type="capsule" fromto="0 0 0 0 0 0.13" size="0.018" material="arm_dark"/>
+            <!-- Elbow pivot hub & STS3215 elbow motor -->
+            <geom name="right_arm_elbow_joint_hub" type="cylinder" size="0.018 0.024" quat="0.7071 0.7071 0 0" material="joint_metal"/>
+            <geom name="right_arm_elbow_motor" type="box" size="0.02 0.026 0.02" pos="0 0 0.022" material="servo_case"/>
+            <!-- Forearm structural truss -->
+            <geom name="right_arm_forearm_link" type="capsule" fromto="0 0 0 0 0 0.13" size="0.014" material="arm_dark"/>
+            <geom name="right_arm_forearm_spar_l" type="box" size="0.005 0.006 0.055" pos="0 0.014 0.065" material="arm_dark"/>
+            <geom name="right_arm_forearm_spar_r" type="box" size="0.005 0.006 0.055" pos="0 -0.014 0.065" material="arm_dark"/>
 
             <!-- Joint 4: Wrist Pitch -->
             <body name="right_arm_link_4_wrist_pitch" pos="0 0 0.13">
               <joint name="right_arm_joint_wrist_pitch" type="hinge" axis="0 1 0" range="-110 110"/>
-              <geom name="right_arm_wrist_pitch_hub" type="cylinder" size="0.018 0.02" quat="0.7071 0.7071 0 0" material="joint_metal"/>
-              <geom name="right_arm_wrist_pitch_body" type="box" size="0.018 0.02 0.02" pos="0 0 0.02" material="arm_accent_right"/>
+              <!-- Wrist pitch gimbal hub -->
+              <geom name="right_arm_wrist_pitch_hub" type="cylinder" size="0.014 0.018" quat="0.7071 0.7071 0 0" material="joint_metal"/>
+              <geom name="right_arm_wrist_pitch_body" type="box" size="0.016 0.02 0.016" pos="0 0 0.016" material="arm_dark"/>
+              <geom name="right_arm_wrist_pitch_accent" type="box" size="0.017 0.002 0.01" pos="0 0.019 0.016" material="arm_accent_right"/>
 
               <!-- Joint 5: Wrist Roll -->
               <body name="right_arm_link_5_wrist_roll" pos="0 0 0.04">
                 <joint name="right_arm_joint_wrist_roll" type="hinge" axis="0 0 1" range="-180 180"/>
-                <geom name="right_arm_wrist_roll_flange" type="cylinder" size="0.02 0.012" pos="0 0 0.012" material="joint_metal"/>
-                <geom name="right_arm_gripper_mount" type="box" size="0.022 0.025 0.01" pos="0 0 0.03" material="arm_dark"/>
+                <geom name="right_arm_wrist_roll_flange" type="cylinder" size="0.016 0.008" pos="0 0 0.008" material="joint_metal"/>
+                <geom name="right_arm_gripper_mount" type="box" size="0.02 0.024 0.01" pos="0 0 0.025" material="arm_dark"/>
 
-                <!-- Wrist Camera and Sites -->
+                <!-- Wrist Camera (RealSense D405 style) and Sites -->
+                <geom name="right_arm_cam_body" type="box" size="0.022 0.008 0.008" pos="0 0.026 0.03" material="camera_chassis"/>
+                <geom name="right_arm_cam_lens_l" type="cylinder" size="0.003 0.002" pos="0.009 0.034 0.03" quat="0.7071 0.7071 0 0" material="camera_lens"/>
+                <geom name="right_arm_cam_lens_r" type="cylinder" size="0.003 0.002" pos="-0.009 0.034 0.03" quat="0.7071 0.7071 0 0" material="camera_lens"/>
                 <site name="right_arm_wrist_cam_site" pos="0 0.03 0.035" quat="0.7071 0.7071 0 0"/>
                 <camera name="right_arm_wrist_cam" pos="0 0.03 0.035" xyaxes="1 0 0 0 0 1"/>
                 <site name="right_arm_gripper_site" pos="0 0 0.075" size="0.005" rgba="1 0.4 0 1"/>
@@ -43,11 +63,15 @@
                 <body name="right_arm_gripper_finger_left" pos="0 0.015 0.035">
                   <joint name="right_arm_joint_gripper" type="hinge" axis="1 0 0" range="0 40"/>
                   <geom name="right_arm_finger_left_geom" type="box" size="0.008 0.004 0.025" pos="0 0 0.025" material="gripper_mat"/>
+                  <geom name="right_arm_finger_left_tip" type="box" size="0.007 0.004 0.005" pos="0 -0.002 0.048" material="gripper_mat"/>
+                  <geom name="right_arm_finger_left_pad" type="box" size="0.006 0.001 0.018" pos="0 -0.004 0.025" material="gripper_pad"/>
                 </body>
 
                 <!-- Gripper Finger Right -->
                 <body name="right_arm_gripper_finger_right" pos="0 -0.015 0.035">
                   <geom name="right_arm_finger_right_geom" type="box" size="0.008 0.004 0.025" pos="0 0 0.025" material="gripper_mat"/>
+                  <geom name="right_arm_finger_right_tip" type="box" size="0.007 0.004 0.005" pos="0 0.002 0.048" material="gripper_mat"/>
+                  <geom name="right_arm_finger_right_pad" type="box" size="0.006 0.001 0.018" pos="0 0.004 0.025" material="gripper_pad"/>
                 </body>
               </body>
             </body>

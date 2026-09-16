@@ -124,14 +124,35 @@ class TwinGuardSim:
         mujoco.mj_resetData(self.model, self.data)
         mujoco.mj_forward(self.model, self.data)
 
+    def attach_viewer(self, viewer: Any, realtime: bool = True) -> None:
+        """Attach a passive MuJoCo viewer to sync on simulation step.
+        
+        Args:
+            viewer: Active mujoco.viewer passive handle.
+            realtime: If True, sleep between steps to match real-time clock.
+        """
+        self._viewer = viewer
+        self._viewer_realtime = realtime
+
+    def detach_viewer(self) -> None:
+        """Detach active viewer."""
+        self._viewer = None
+        self._viewer_realtime = False
+
     def step(self, n_steps: int = 1) -> None:
         """Advance the simulation by n physics timesteps.
 
         Args:
             n_steps: Number of integration steps to advance (default: 1).
         """
+        import time
         for _ in range(n_steps):
             mujoco.mj_step(self.model, self.data)
+        viewer = getattr(self, "_viewer", None)
+        if viewer is not None:
+            viewer.sync()
+            if getattr(self, "_viewer_realtime", False):
+                time.sleep(self.get_timestep() * n_steps)
 
     def get_time(self) -> float:
         """Return current simulation time in seconds."""

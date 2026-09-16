@@ -10,70 +10,86 @@
   </default>
 
   <visual>
-    <headlight ambient="0.4 0.4 0.4" diffuse="0.8 0.8 0.8" specular="0.2 0.2 0.2"/>
+    <headlight ambient="0.25 0.25 0.28" diffuse="0.5 0.5 0.52" specular="0.1 0.1 0.1"/>
     <global offwidth="1280" offheight="720"/>
   </visual>
 
   <asset>
-    <texture type="skybox" builtin="gradient" rgb1="0.3 0.5 0.7" rgb2="0.05 0.05 0.1" width="512" height="512"/>
-    <texture name="grid_floor" type="2d" builtin="checker" rgb1="0.2 0.22 0.25" rgb2="0.15 0.16 0.18" width="512" height="512" mark="edge" markrgb="0.8 0.8 0.8"/>
-    <material name="floor_mat" texture="grid_floor" texrepeat="20 20" reflectance="0.1"/>
-    <material name="table_mat" rgba="0.85 0.85 0.88 1.0" roughness="0.3" reflectance="0.05"/>
-    <material name="target_mat" rgba="0.2 0.7 0.9 1.0" roughness="0.2"/>
-    <material name="arm_dark" rgba="0.2 0.22 0.25 1.0" roughness="0.6"/>
-    <material name="arm_accent_left" rgba="0.15 0.65 0.95 1.0" roughness="0.4"/>
-    <material name="arm_accent_right" rgba="0.95 0.45 0.1 1.0" roughness="0.4"/>
-    <material name="gripper_mat" rgba="0.1 0.1 0.1 1.0" roughness="0.5"/>
-    <material name="joint_metal" rgba="0.75 0.75 0.78 1.0" metallic="0.8" roughness="0.3"/>
-    <material name="plate_mat" rgba="0.95 0.95 0.96 1.0" roughness="0.2" reflectance="0.1"/>
-    <material name="mug_mat" rgba="0.85 0.25 0.2 1.0" roughness="0.4"/>
+    <texture type="skybox" builtin="gradient" rgb1="0.2 0.3 0.45" rgb2="0.04 0.05 0.08" width="512" height="512"/>
+    <texture name="floor_tex" type="2d" file="textures/lab_floor.png"/>
+    <material name="floor_mat" texture="floor_tex" texrepeat="6 6" roughness="0.6" reflectance="0.08"/>
+
+    <texture name="wood_tex" type="2d" file="textures/wood_table.png"/>
+    <material name="table_wood_mat" texture="wood_tex" texrepeat="2 2" roughness="0.35" reflectance="0.12"/>
+    <material name="table_frame_mat" rgba="0.15 0.16 0.18 1.0" metallic="0.7" roughness="0.25"/>
+
+    <material name="arm_dark" rgba="0.15 0.16 0.18 1.0" roughness="0.5"/>
+    <material name="arm_accent_left" rgba="0.12 0.55 0.88 1.0" roughness="0.3"/>
+    <material name="arm_accent_right" rgba="0.92 0.42 0.12 1.0" roughness="0.3"/>
+    <material name="gripper_mat" rgba="0.08 0.09 0.10 1.0" roughness="0.4"/>
+    <material name="gripper_pad" rgba="0.25 0.25 0.27 1.0" roughness="0.8"/>
+    <material name="joint_metal" rgba="0.78 0.80 0.82 1.0" metallic="0.85" roughness="0.2"/>
+    <material name="servo_case" rgba="0.12 0.13 0.15 1.0" roughness="0.4"/>
+    <material name="camera_chassis" rgba="0.28 0.30 0.34 1.0" metallic="0.5" roughness="0.3"/>
+    <material name="camera_lens" rgba="0.02 0.02 0.05 1.0" roughness="0.1" reflectance="0.5"/>
+
+    <!-- High contrast manipulation objects -->
+    <material name="plate_rim_mat" rgba="0.10 0.28 0.55 1.0" roughness="0.25" reflectance="0.2"/>
+    <material name="plate_inner_mat" rgba="0.96 0.96 0.95 1.0" roughness="0.2" reflectance="0.2"/>
+    <material name="mug_ceramic_mat" rgba="0.85 0.18 0.15 1.0" roughness="0.2" reflectance="0.25"/>
+    <material name="mug_inner_mat" rgba="0.95 0.95 0.92 1.0" roughness="0.3"/>
+    <material name="drawer_wood_mat" rgba="0.35 0.22 0.14 1.0" roughness="0.4"/>
+    <material name="drawer_box_mat" rgba="0.52 0.35 0.22 1.0" roughness="0.4"/>
+    <material name="brass_handle_mat" rgba="0.88 0.75 0.35 1.0" metallic="0.9" roughness="0.15"/>
   </asset>
 
   <worldbody>
     <!-- Ground plane -->
     <geom name="ground" type="plane" size="5 5 0.1" material="floor_mat"/>
 
-    <!-- Key Lighting -->
-    <light directional="true" pos="0.5 0.5 2.0" dir="-0.5 -0.5 -1.0" diffuse="0.9 0.9 0.9" specular="0.3 0.3 0.3"/>
-    <light directional="true" pos="-0.5 -0.5 2.0" dir="0.5 0.5 -1.0" diffuse="0.4 0.4 0.4"/>
+    <!-- Key Studio Lighting -->
+    <light directional="true" pos="0.8 0.5 2.2" dir="-0.5 -0.3 -1.0" diffuse="0.7 0.7 0.72" specular="0.25 0.25 0.25" castshadow="true"/>
+    <light directional="true" pos="-0.6 -0.6 1.8" dir="0.5 0.5 -1.0" diffuse="0.35 0.35 0.38" specular="0.05 0.05 0.05"/>
 
     <!-- Shared Work Table -->
     <body name="table" pos="0.2 0 0.4">
-      <geom name="table_top" type="box" size="0.4 0.5 0.02" material="table_mat"/>
-      <geom name="table_leg_1" type="cylinder" size="0.02 0.2" pos="0.35 0.45 -0.2" material="table_mat"/>
-      <geom name="table_leg_2" type="cylinder" size="0.02 0.2" pos="-0.35 0.45 -0.2" material="table_mat"/>
-      <geom name="table_leg_3" type="cylinder" size="0.02 0.2" pos="0.35 -0.45 -0.2" material="table_mat"/>
-      <geom name="table_leg_4" type="cylinder" size="0.02 0.2" pos="-0.35 -0.45 -0.2" material="table_mat"/>
+      <geom name="table_top" type="box" size="0.4 0.5 0.02" material="table_wood_mat"/>
+      <geom name="table_border" type="box" size="0.405 0.505 0.005" pos="0 0 -0.015" material="table_frame_mat"/>
+      <geom name="table_leg_1" type="cylinder" size="0.025 0.2" pos="0.35 0.45 -0.2" material="table_frame_mat"/>
+      <geom name="table_leg_2" type="cylinder" size="0.025 0.2" pos="-0.35 0.45 -0.2" material="table_frame_mat"/>
+      <geom name="table_leg_3" type="cylinder" size="0.025 0.2" pos="0.35 -0.45 -0.2" material="table_frame_mat"/>
+      <geom name="table_leg_4" type="cylinder" size="0.025 0.2" pos="-0.35 -0.45 -0.2" material="table_frame_mat"/>
     </body>
 
     <!-- Manipulation Object: Plate on shared table -->
     <body name="plate" pos="0.25 0 0.435">
       <freejoint name="plate_joint"/>
-      <geom name="plate_geom" type="cylinder" size="0.08 0.007" material="plate_mat" mass="0.1" friction="0.8 0.005 0.0001"/>
-      <geom name="plate_rim" type="cylinder" size="0.082 0.003" pos="0 0 0.005" material="plate_mat" mass="0.02"/>
+      <geom name="plate_geom" type="cylinder" size="0.08 0.007" material="plate_inner_mat" mass="0.1" friction="0.8 0.005 0.0001"/>
+      <geom name="plate_rim" type="cylinder" size="0.082 0.003" pos="0 0 0.005" material="plate_rim_mat" mass="0.02"/>
     </body>
 
     <!-- Manipulation Object: Mug on shared table -->
     <body name="mug" pos="0.22 -0.16 0.465">
       <freejoint name="mug_joint"/>
-      <geom name="mug_base" type="cylinder" size="0.035 0.045" material="mug_mat" mass="0.08" friction="0.8 0.005 0.0001"/>
-      <geom name="mug_handle" type="box" size="0.008 0.012 0.02" pos="-0.04 0 0" material="mug_mat" mass="0.01"/>
+      <geom name="mug_base" type="cylinder" size="0.035 0.045" material="mug_ceramic_mat" mass="0.08" friction="0.8 0.005 0.0001"/>
+      <geom name="mug_rim" type="cylinder" size="0.034 0.002" pos="0 0 0.045" material="mug_inner_mat" mass="0.005"/>
+      <geom name="mug_handle" type="box" size="0.008 0.012 0.022" pos="-0.042 0 0" material="mug_ceramic_mat" mass="0.01"/>
     </body>
 
     <!-- Manipulation Object: Drawer unit on shared table -->
     <body name="drawer_chest" pos="0.26 0.22 0.46">
-      <geom name="drawer_chest_geom" type="box" size="0.05 0.05 0.03" material="table_mat" mass="2.0"/>
+      <geom name="drawer_chest_geom" type="box" size="0.05 0.05 0.03" material="drawer_wood_mat" mass="2.0"/>
       <body name="drawer" pos="0 0 0">
         <joint name="drawer_joint" type="slide" axis="-1 0 0" range="0 0.08" damping="1.0" armature="0.01"/>
-        <geom name="drawer_body_geom" type="box" size="0.045 0.045 0.025" rgba="0.75 0.55 0.35 1.0" mass="0.1" friction="0.8 0.005 0.0001"/>
-        <geom name="drawer_handle" type="box" size="0.008 0.02 0.008" pos="-0.06 0 0" rgba="0.2 0.2 0.2 1.0" mass="0.02"/>
+        <geom name="drawer_body_geom" type="box" size="0.045 0.045 0.025" material="drawer_box_mat" mass="0.1" friction="0.8 0.005 0.0001"/>
+        <geom name="drawer_handle" type="box" size="0.008 0.02 0.008" pos="-0.06 0 0" material="brass_handle_mat" mass="0.02"/>
         <site name="drawer_handle_site" pos="-0.07 0 0" size="0.005" rgba="0 1 0 1"/>
       </body>
     </body>
 
     <!-- Fixed Scene Cameras -->
-    <camera name="overview_cam" pos="0.8 -0.8 1.1" xyaxes="0.707 0.707 0 -0.4 0.4 0.82"/>
-    <camera name="front_cam" pos="0.7 0 0.8" xyaxes="0 1 0 -0.5 0 0.86"/>
+    <camera name="overview_cam" mode="targetbody" target="table" pos="1.15 -1.05 0.95"/>
+    <camera name="front_cam" mode="targetbody" target="table" pos="1.0 0 0.65"/>
   </worldbody>
 
   <!-- Dual Arms: Left Arm and Right Arm -->
