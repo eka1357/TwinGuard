@@ -11,7 +11,7 @@
 
   <visual>
     <headlight ambient="0.25 0.25 0.28" diffuse="0.5 0.5 0.52" specular="0.1 0.1 0.1"/>
-    <global offwidth="1280" offheight="720"/>
+    <global offwidth="1280" offheight="800"/>
   </visual>
 
   <asset>
@@ -50,6 +50,7 @@
     <!-- Key Studio Lighting -->
     <light directional="true" pos="0.8 0.5 2.2" dir="-0.5 -0.3 -1.0" diffuse="0.7 0.7 0.72" specular="0.25 0.25 0.25" castshadow="true"/>
     <light directional="true" pos="-0.6 -0.6 1.8" dir="0.5 0.5 -1.0" diffuse="0.35 0.35 0.38" specular="0.05 0.05 0.05"/>
+    <light directional="false" pos="0.2 0.0 1.6" diffuse="0.25 0.25 0.28" specular="0.1 0.1 0.1" castshadow="false"/>
 
     <!-- Shared Work Table -->
     <body name="table" pos="0.2 0 0.4">
@@ -88,6 +89,7 @@
     </body>
 
     <!-- Fixed Scene Cameras -->
+    <camera name="demo_cam" mode="targetbody" target="table" pos="0.95 -0.78 0.78"/>
     <camera name="overview_cam" mode="targetbody" target="table" pos="1.15 -1.05 0.95"/>
     <camera name="front_cam" mode="targetbody" target="table" pos="1.0 0 0.65"/>
   </worldbody>

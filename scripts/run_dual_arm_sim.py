@@ -207,6 +207,12 @@ def main() -> int:
         help="Run sinusoidal joint oscillation demo instead of manipulation task",
     )
     parser.add_argument(
+        "--camera",
+        type=str,
+        default="demo_cam",
+        help="Named scene camera for interactive viewer (default: demo_cam)",
+    )
+    parser.add_argument(
         "--save-render",
         type=str,
         default=None,
@@ -236,9 +242,31 @@ def main() -> int:
     if args.view:
         try:
             import mujoco.viewer
-            viewer_ctx = mujoco.viewer.launch_passive(sim.model, sim.data)
+            viewer_ctx = mujoco.viewer.launch_passive(
+                sim.model, sim.data, show_left_ui=False, show_right_ui=False
+            )
+            if args.camera:
+                cam_id = mujoco.mj_name2id(sim.model, mujoco.mjtObj.mjOBJ_CAMERA, args.camera)
+                if cam_id != -1:
+                    viewer_ctx.cam.type = mujoco.mjtCamera.mjCAMERA_FIXED
+                    viewer_ctx.cam.fixedcamid = cam_id
+            if sys.platform == "win32":
+                try:
+                    import ctypes
+                    def _resize_cb(hwnd, _):
+                        buf = ctypes.create_unicode_buffer(512)
+                        ctypes.windll.user32.GetWindowTextW(hwnd, buf, 512)
+                        if "MuJoCo" in buf.value:
+                            ctypes.windll.user32.SetWindowPos(hwnd, 0, 0, 0, 1280, 800, 0x0002 | 0x0004)
+                            return False
+                        return True
+                    ctypes.windll.user32.EnumWindows(
+                        ctypes.WINFUNCTYPE(ctypes.c_bool, ctypes.c_int, ctypes.c_int)(_resize_cb), 0
+                    )
+                except Exception:
+                    pass
             sim.attach_viewer(viewer_ctx, realtime=True)
-            print("[OK] Interactive MuJoCo viewer active. Watch the dual-arm manipulation live.")
+            print(f"[OK] Interactive MuJoCo viewer active (camera: {args.camera or 'free'}, 1280x800). Watch the dual-arm manipulation live.")
         except Exception as e:
             print(f"[WARN] Failed to launch interactive viewer: {e}")
 

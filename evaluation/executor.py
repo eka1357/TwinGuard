@@ -154,13 +154,14 @@ def execute_primitive_step(
 
 
 def run_plan(
-    instruction: str,
+    instruction: str = WORKED_EXAMPLE_INSTRUCTION,
     sim: Optional[TwinGuardSim] = None,
     config_path: Optional[Union[str, Path]] = None,
-    llm_caller: Optional[Callable] = None,
+    llm_caller: Optional[Callable[[str], str]] = None,
     max_recovery_attempts: int = 2,
     verbose: bool = True,
     view: bool = False,
+    camera: Optional[str] = "demo_cam",
 ) -> Dict[str, Any]:
     """Execute natural language instruction through perception, planning, control, and safety verification.
 
@@ -172,6 +173,7 @@ def run_plan(
         max_recovery_attempts: Maximum recovery replanning attempts per failed step (default: 2).
         verbose: Whether to log execution details to console.
         view: Whether to launch the interactive 3D MuJoCo viewer during execution.
+        camera: Optional named camera for the viewer (defaults to 'demo_cam').
 
     Returns:
         Dict containing execution metrics, logs, and overall status.
@@ -185,10 +187,32 @@ def run_plan(
     if view:
         try:
             import mujoco.viewer
-            viewer_ctx = mujoco.viewer.launch_passive(sim.model, sim.data)
+            viewer_ctx = mujoco.viewer.launch_passive(
+                sim.model, sim.data, show_left_ui=False, show_right_ui=False
+            )
+            if camera:
+                cam_id = mujoco.mj_name2id(sim.model, mujoco.mjtObj.mjOBJ_CAMERA, camera)
+                if cam_id != -1:
+                    viewer_ctx.cam.type = mujoco.mjtCamera.mjCAMERA_FIXED
+                    viewer_ctx.cam.fixedcamid = cam_id
+            if sys.platform == "win32":
+                try:
+                    import ctypes
+                    def _resize_cb(hwnd, _):
+                        buf = ctypes.create_unicode_buffer(512)
+                        ctypes.windll.user32.GetWindowTextW(hwnd, buf, 512)
+                        if "MuJoCo" in buf.value:
+                            ctypes.windll.user32.SetWindowPos(hwnd, 0, 0, 0, 1280, 800, 0x0002 | 0x0004)
+                            return False
+                        return True
+                    ctypes.windll.user32.EnumWindows(
+                        ctypes.WINFUNCTYPE(ctypes.c_bool, ctypes.c_int, ctypes.c_int)(_resize_cb), 0
+                    )
+                except Exception:
+                    pass
             sim.attach_viewer(viewer_ctx, realtime=True)
             if verbose:
-                logger.info("[OK] MuJoCo interactive viewer launched. Live task visualization active.")
+                logger.info(f"[OK] MuJoCo interactive viewer launched (camera: {camera or 'free'}, 1280x800). Live task visualization active.")
         except Exception as viewer_err:
             if verbose:
                 logger.warning(f"Could not launch MuJoCo viewer: {viewer_err}")
@@ -397,6 +421,12 @@ def main() -> None:
         action="store_true",
         help="Launch the interactive MuJoCo passive viewer window to watch live bimanual manipulation",
     )
+    parser.add_argument(
+        "--camera",
+        type=str,
+        default="demo_cam",
+        help="Named scene camera for interactive viewer (default: demo_cam)",
+    )
     args = parser.parse_args()
 
     results = run_plan(
@@ -405,6 +435,7 @@ def main() -> None:
         max_recovery_attempts=args.max_retries,
         verbose=True,
         view=args.view,
+        camera=args.camera,
     )
 
     print("\nSTEP BY STEP EXECUTION STATUS:")
