@@ -136,8 +136,7 @@ def execute_primitive_step(
         return bool(primitives.open_drawer(arm, drawer_body=step.object))
 
     elif action == "pour":
-        target_container = target if target is not None else step.object
-        return bool(primitives.pour(arm, target_container=target_container))
+        return bool(primitives.pour(arm, target_container=step.object))
 
     else:
         logger.error(f"Unrecognized action '{action}'")

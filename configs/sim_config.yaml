@@ -105,3 +105,9 @@ planning:
     max_tokens: 1024                  # Max token generation limit
     retry_on_validation_error: true   # Retry once if schema validation fails
     max_retries: 1                    # Number of retries on validation failure
+
+evaluation:
+  benchmark:
+    num_iterations: 100               # Number of benchmark inference runs
+    warmup_iterations: 10             # Warmup cycles before timing
+    device: "CPU"                     # OpenVINO target device ('CPU', 'GPU', 'NPU')
