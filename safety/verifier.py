@@ -88,6 +88,31 @@ class SafetyVerifier:
             return np.copy(self.sim.data.xpos[bid])
         return np.zeros(3)
 
+    def get_contact_force_with_object(self, arm: str, obj_name: str) -> float:
+        """Calculate total normal contact force between arm fingers and target object."""
+        total_force = 0.0
+        bid = mujoco.mj_name2id(self.sim.model, mujoco.mjtObj.mjOBJ_BODY, obj_name)
+        if bid == -1:
+            return 0.0
+
+        for i in range(self.sim.data.ncon):
+            contact = self.sim.data.contact[i]
+            g1 = mujoco.mj_id2name(self.sim.model, mujoco.mjtObj.mjOBJ_GEOM, contact.geom1) or ""
+            g2 = mujoco.mj_id2name(self.sim.model, mujoco.mjtObj.mjOBJ_GEOM, contact.geom2) or ""
+
+            b1 = self.sim.model.geom_bodyid[contact.geom1]
+            b2 = self.sim.model.geom_bodyid[contact.geom2]
+
+            is_arm = (arm in g1 and "finger" in g1) or (arm in g2 and "finger" in g2)
+            is_obj = (b1 == bid) or (b2 == bid) or (obj_name in g1) or (obj_name in g2)
+
+            if is_arm and is_obj:
+                c_array = np.zeros(6, dtype=np.float64)
+                mujoco.mj_contactForce(self.sim.model, self.sim.data, i, c_array)
+                total_force += float(np.linalg.norm(c_array[:3]))
+
+        return total_force
+
     def check_global_safety(self) -> VerificationResult:
         """Verify global safety constraints (stability, table drops, collisions)."""
         # 1. Physics stability
@@ -230,9 +255,44 @@ class SafetyVerifier:
                     reason=f"Grasp failed: gripper on '{arm}' failed to close (position {grip_pos:.1f} deg)",
                 ).to_dict()
 
+            contact_force = self.get_contact_force_with_object(arm, obj_name)
+            force_info = f" (contact normal force: {contact_force:.2f}N)" if contact_force > 0 else ""
+
             return VerificationResult(
                 success=True,
-                reason=f"Grasp verified: gripper closed around '{obj_name}'",
+                reason=f"Grasp verified: gripper closed around '{obj_name}'{force_info}",
+            ).to_dict()
+
+        # ------------------------------------------------------------------
+        # Handover Verification
+        # ------------------------------------------------------------------
+        if action == "handover":
+            bid = mujoco.mj_name2id(self.sim.model, mujoco.mjtObj.mjOBJ_BODY, obj_name)
+            dest_arm = "right_arm" if arm == "left_arm" else "left_arm"
+            if bid != -1:
+                obj_pos = np.copy(self.sim.data.xpos[bid])
+                dest_ee = self.get_ee_position(dest_arm)
+                dist = float(np.linalg.norm(dest_ee - obj_pos))
+                if dist > self.grasp_tol:
+                    return VerificationResult(
+                        success=False,
+                        reason=(
+                            f"Handover failed: '{obj_name}' is not within receiving arm '{dest_arm}' grasp zone "
+                            f"(distance {dist:.3f}m > threshold {self.grasp_tol}m)"
+                        ),
+                    ).to_dict()
+
+            dest_grip = float(self.sim.get_arm_gripper_position(dest_arm, in_degrees=True))
+            dest_closed = float(self.sim.gripper_config.get("closed_pos", 0.0))
+            if dest_grip > (dest_closed + 15.0):
+                return VerificationResult(
+                    success=False,
+                    reason=f"Handover failed: receiving arm '{dest_arm}' gripper did not close around '{obj_name}'",
+                ).to_dict()
+
+            return VerificationResult(
+                success=True,
+                reason=f"Handover verified: '{obj_name}' successfully transferred from '{arm}' to '{dest_arm}'",
             ).to_dict()
 
         # ------------------------------------------------------------------

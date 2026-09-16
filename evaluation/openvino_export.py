@@ -150,9 +150,54 @@ def export_to_openvino_int8(
     return int8_xml_path, int8_bin_path
 
 
+def export_visual_guard_to_openvino(
+    output_dir: Optional[Union[str, Path]] = None,
+    input_shape: Sequence[int] = (1, 3, 128, 128),
+    verbose: bool = True,
+) -> Tuple[Path, Path]:
+    """Export VisualAnomalyDetector (Anomalib-aligned) to OpenVINO IR format.
+
+    Args:
+        output_dir: Destination directory for IR files.
+        input_shape: Input shape (1, 3, 128, 128).
+        verbose: Print progress.
+
+    Returns:
+        Tuple of (xml_path, bin_path).
+    """
+    from safety.visual_guard import VisualAnomalyDetector
+
+    out_d = Path(output_dir) if output_dir else DEFAULT_OPENVINO_DIR
+    out_d.mkdir(parents=True, exist_ok=True)
+
+    xml_path = out_d / "visual_anomaly_detector.xml"
+    bin_path = out_d / "visual_anomaly_detector.bin"
+
+    if verbose:
+        print(f"[INFO] Initializing VisualAnomalyDetector architecture...")
+
+    model = VisualAnomalyDetector(embedding_dim=64)
+    model.eval()
+
+    dummy_input = torch.randn(*input_shape, dtype=torch.float32)
+
+    if verbose:
+        print(f"[INFO] Converting visual anomaly model to OpenVINO IR...")
+
+    ov_model = ov.convert_model(model, example_input=dummy_input)
+    ov.save_model(ov_model, str(xml_path))
+
+    if verbose:
+        print(f"[SUCCESS] Visual Anomaly OpenVINO model exported:")
+        print(f"  - XML: {xml_path} ({xml_path.stat().st_size} bytes)")
+        print(f"  - BIN: {bin_path} ({bin_path.stat().st_size} bytes)")
+
+    return xml_path, bin_path
+
+
 def main() -> None:
-    """CLI entrypoint to convert PyTorch checkpoint to OpenVINO IR and quantize to INT8."""
-    parser = argparse.ArgumentParser(description="Export TwinGuard Object Detector to OpenVINO IR & INT8")
+    """CLI entrypoint to convert PyTorch models to OpenVINO IR and quantize to INT8."""
+    parser = argparse.ArgumentParser(description="Export TwinGuard Perception & Anomaly Models to OpenVINO IR & INT8")
     parser.add_argument(
         "--checkpoint",
         type=str,
@@ -171,6 +216,12 @@ def main() -> None:
         default=True,
         help="Apply Intel NNCF INT8 post-training quantization",
     )
+    parser.add_argument(
+        "--all",
+        action="store_true",
+        default=True,
+        help="Export both Object Detector and Visual Anomaly Detector",
+    )
     args = parser.parse_args()
 
     xml_p, bin_p = export_to_openvino(
@@ -182,6 +233,12 @@ def main() -> None:
     if args.quantize_int8:
         export_to_openvino_int8(
             model_xml=xml_p,
+            output_dir=args.output_dir,
+            verbose=True,
+        )
+
+    if args.all:
+        export_visual_guard_to_openvino(
             output_dir=args.output_dir,
             verbose=True,
         )

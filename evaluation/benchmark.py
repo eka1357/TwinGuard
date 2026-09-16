@@ -32,6 +32,8 @@ from evaluation.openvino_export import (
     export_to_openvino_int8,
 )
 
+DEFAULT_ANOMALY_XML_PATH = PROJECT_ROOT / "checkpoints" / "openvino" / "visual_anomaly_detector.xml"
+
 
 # ------------------------------------------------------------------------------
 # One-Line Device Selection
@@ -329,6 +331,12 @@ def main() -> None:
         help="Run side-by-side comparison between FP32 and INT8 models",
     )
     parser.add_argument(
+        "--anomaly",
+        action="store_true",
+        default=False,
+        help="Benchmark Visual Anomaly Detector (Anomalib-aligned)",
+    )
+    parser.add_argument(
         "--hint",
         type=str,
         default="LATENCY",
@@ -344,8 +352,9 @@ def main() -> None:
             config_path=args.config,
         )
     else:
+        target_model = DEFAULT_ANOMALY_XML_PATH if args.anomaly else args.model
         run_benchmark(
-            model_xml=args.model,
+            model_xml=target_model,
             device=args.device,
             num_iterations=args.iterations,
             config_path=args.config,

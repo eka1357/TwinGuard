@@ -44,49 +44,53 @@ TwinGuard follows a modular, closed-loop Physical AI architecture ensuring deter
 ```
                   ┌──────────────────────────────────────────────┐
                   │          Natural Language Instruction        │
-                  │  "Open drawer, pick plate with arm A, place  │
-                  │   on table, pick mug with B, pour with A"    │
+                  │  "Open drawer, pick plate with arm A, hand   │
+                  │   off to B, place on table, pour with A"     │
                   └──────────────────────┬───────────────────────┘
                                          │
                                          ▼
 ┌──────────────────┐             ┌───────────────┐
 │ Camera Rendering │────────────►│  Perception   │
 │ (MuJoCo Sensors) │             │ (Scene State) │
-└──────────────────┘             └───────┬───────┘
-                                         │  Compact JSON Scene State
-                                         ▼
-                                 ┌───────────────┐
-                                 │  VLA Planner  │◄───────────────────────────┐
-                                 │  (LLM Engine) │                            │
-                                 └───────┬───────┘                            │
-                                         │  Structured PlanSteps              │
-                                         ▼  (Pydantic Validated)              │
-                                 ┌───────────────┐                            │
-                        ┌───────►│   Executor    │                            │
-                        │        └───────┬───────┘                            │
-                        │                │ Execute Primitive                  │
-                        │                ▼                                    │
-                        │        ┌───────────────┐                            │
-                        │        │  Primitives   │                            │
-                        │        │ (Dual SO-101) │                            │
-                        │        └───────┬───────┘                            │
-                        │                │ Forward Kinematics / PD            │
-                        │                ▼                                    │
-                        │        ┌───────────────┐                            │
-                        │        │ MuJoCo Engine │                            │
-                        │        └───────┬───────┘                            │
-                        │                │ Telemetry & FreeJoint State        │
-                        │                ▼                                    │
-                        │        ┌───────────────┐                            │
-                        │        │   Verifier    │                            │
-                        │        │(Safety Guard) │                            │
-                        │        └───────┬───────┘                            │
-                        │                │                                    │
-             Step Succeeded?             │                                    │
-                 [YES]                   ▼ [NO]                               │
-                   └─────────────────────┴──────► Dynamic Recovery Handler ───┘
-                                                  (Isolate failed object,
-                                                   re-observe & replan)
+└────────┬─────────┘             └───────┬───────┘
+         │                               │
+         │  RGB Frame                    │  Compact JSON Scene State
+         └───────────────┬───────────────┘
+                         ▼
+                 ┌───────────────┐
+                 │ Multimodal    │◄───────────────────────────┐
+                 │ Vision-LLM /  │                            │
+                 │ SmolVLA Policy│ (Prompt + Camera Images)   │
+                 └───────┬───────┘                            │
+                         │  Structured PlanSteps              │
+                         │  (Pydantic Validated)              │
+                         ▼                                    │
+                 ┌───────────────┐                            │
+        ┌───────►│   Executor    │                            │
+        │        └───────┬───────┘                            │
+        │                │ Execute Primitive                  │
+        │                ▼                                    │
+        │        ┌───────────────┐                            │
+        │        │ Bimanual      │ ──► Handover Primitive     │
+        │        │ Primitives    │ ──► Damped Least Squares IK│
+        │        └───────┬───────┘                            │
+        │                │ Joint Commands (12-DOF LeRobot)    │
+        │                ▼                                    │
+        │        ┌───────────────┐                            │
+        │        │ MuJoCo Engine │                            │
+        │        └───────┬───────┘                            │
+        │                │ Telemetry & Contact Forces         │
+        │                ▼                                    │
+        │        ┌───────────────┐                            │
+        │        │ SafetyVerifier│ ──► Contact Force Check    │
+        │        │ + Visual Guard│ ──► OpenVINO Anomalib Model│
+        │        └───────┬───────┘                            │
+        │                │                                    │
+     Step Succeeded?     │                                    │
+         [YES]           ▼ [NO]                               │
+           └─────────────┴──────► Dynamic Recovery Handler ───┘
+                                  (Re-observe, diagnose drop,
+                                   synthesize self-healing plan)
 ```
 
 ### Core Subsystems
@@ -95,15 +99,11 @@ TwinGuard follows a modular, closed-loop Physical AI architecture ensuring deter
    - `scene_state.py`: Extracts exact ground-truth 3D spatial coordinates, orientations, bounding limits, and arm joint states into a concise, token-efficient text description formatted for language models.
    - `object_detector.py`: Lightweight 3-layer convolutional neural network trained on rendered synthetic camera observations, predicting bounding boxes and labels for `plate`, `mug`, and `drawer_handle`.
 2. **Planning & Multi-Modal Reasoning (`planning/`)**:
-   - `planner.py`: Bridges natural language instructions and multi-modal observations. Implements strict Pydantic validation (`PlanStep`) to enforce structured action schemas: `action` (`approach`, `grasp`, `lift`, `transport`, `release`, `open_drawer`, `pour`), `arm` (`left_arm` or `right_arm`), `object`, and optional 3D target coordinates.
-   - Dynamic Replanner: Accepts execution error diagnostics, re-queries perception, and generates targeted recovery actions when anomalies occur.
+   - `planner.py`: Multi-modal Vision-Language planner supporting direct camera frame base64 ingestion and strict Pydantic validation (`PlanStep`). Handles actions: `approach`, `grasp`, `lift`, `transport`, `release`, `open_drawer`, `pour`, and `handover`.
+   - `vla_interface.py`: Exposes the Hugging Face LeRobot `bi_so101_follower` convention (12-DOF action space = 6 joints $\times$ 2 arms) and SmolVLA observation tensor dictionary.
 3. **Robotics & Kinematics (`robotics/`)**:
-   - `primitives.py`: Modular, high-level bimanual motion primitives with smooth minimum-jerk trajectory interpolation and closed-loop position control. Resolves target coordinates at runtime from live physics state to avoid stale spatial references.
+   - `primitives.py`: Modular bimanual motion primitives with minimum-jerk trajectory interpolation, Damped Least Squares inverse kinematics, and coordinated dual-arm `handover`.
 4. **Safety & Verification (`safety/`)**:
-   - `verifier.py`: Post-step verification verifying:
-     - Grasp stability via object freejoint-to-gripper proximity checks.
-     - Object displacement verification within configurable tolerances.
-     - Spatial boundary safety (flags objects dropping below table elevation $z < 0.40\text{ m}$).
      - Dual-arm collision monitoring (detects arm-to-arm geometry penetration).
 5. **Evaluation & OpenVINO Acceleration (`evaluation/`)**:
    - `executor.py`: Unified pipeline coordinating perception $\to$ planning $\to$ action $\to$ verification $\to$ recovery.

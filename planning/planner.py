@@ -5,6 +5,8 @@ Decomposes natural language instructions into validated sequences of motion prim
 Strictly validates outputs using Pydantic schemas and retries with feedback on validation failure.
 """
 
+import base64
+import io
 import json
 import os
 from pathlib import Path
@@ -13,6 +15,29 @@ import urllib.error
 import urllib.request
 import yaml
 from pydantic import BaseModel, Field, ValidationError, field_validator
+import numpy as np
+
+try:
+    from PIL import Image
+except ImportError:
+    Image = None
+
+
+def encode_image_to_base64(img_array: Any) -> Optional[str]:
+    """Encode RGB numpy image array to base64 JPEG string."""
+    if Image is None or img_array is None:
+        return None
+    try:
+        if isinstance(img_array, np.ndarray):
+            pil_img = Image.fromarray(img_array.astype(np.uint8))
+            buf = io.BytesIO()
+            pil_img.save(buf, format="JPEG", quality=85)
+            return base64.b64encode(buf.getvalue()).decode("utf-8")
+        elif isinstance(img_array, str) and img_array.startswith("data:image"):
+            return img_array.split(",", 1)[1]
+    except Exception:
+        pass
+    return None
 
 
 # Allowed primitive actions matching robotics/primitives.py
@@ -24,6 +49,7 @@ ActionType = Literal[
     "release",
     "open_drawer",
     "pour",
+    "handover",
 ]
 
 # Allowed robotic arm names matching simulation topology
@@ -235,12 +261,13 @@ ALLOWED ACTIONS (and only these):
 - "release": Open gripper on the specified arm. target is null.
 - "open_drawer": Grasp handle and slide drawer open. target is null.
 - "pour": Tilt gripper over target container. Requires target [x,y,z] of target container.
+- "handover": Coordinated bimanual transfer of object from source arm to opposite arm at central workspace. target is null.
 
 SCHEMA REQUIREMENTS:
 Return a JSON array of step objects with this exact structure:
 [
   {{
-    "action": "open_drawer" | "approach" | "grasp" | "lift" | "transport" | "release" | "pour",
+    "action": "open_drawer" | "approach" | "grasp" | "lift" | "transport" | "release" | "pour" | "handover",
     "arm": "left_arm" | "right_arm",
     "object": "drawer" | "plate" | "mug" | "table",
     "target": [x, y, z] or null
@@ -254,8 +281,8 @@ Return ONLY the raw JSON array. Do not include markdown code blocks or explanato
 """
         return prompt
 
-    def call_llm(self, prompt: str) -> str:
-        """Invoke the configured LLM with the provided prompt."""
+    def call_llm(self, prompt: str, camera_image: Optional[Any] = None) -> str:
+        """Invoke the configured LLM with the provided prompt and optional multimodal camera frame."""
         if self.llm_caller is not None:
             # Inspect arity of caller
             try:
@@ -267,10 +294,10 @@ Return ONLY the raw JSON array. Do not include markdown code blocks or explanato
             return self._mock_llm_response(prompt)
 
         if self.provider in ("openrouter", "open_router"):
-            return self._call_openrouter_api(prompt)
+            return self._call_openrouter_api(prompt, camera_image=camera_image)
 
         if self.provider == "gemini":
-            return self._call_gemini_api(prompt)
+            return self._call_gemini_api(prompt, camera_image=camera_image)
 
         if self.provider == "openai":
             return self._call_openai_api(prompt)
@@ -302,7 +329,19 @@ Return ONLY the raw JSON array. Do not include markdown code blocks or explanato
             ]
             return json.dumps(plan)
 
-        # Instruction 2: Open drawer, grasp mug, pour into plate
+        # Instruction 2: Handover / hand-off task
+        if "hand" in task_text or "transfer" in task_text:
+            plan = [
+                {"action": "approach", "arm": "left_arm", "object": "plate", "target": [0.25, 0.0, 0.435]},
+                {"action": "grasp", "arm": "left_arm", "object": "plate", "target": None},
+                {"action": "lift", "arm": "left_arm", "object": "plate", "target": None},
+                {"action": "handover", "arm": "left_arm", "object": "plate", "target": None},
+                {"action": "transport", "arm": "right_arm", "object": "table", "target": [0.22, -0.12, 0.50]},
+                {"action": "release", "arm": "right_arm", "object": "plate", "target": None},
+            ]
+            return json.dumps(plan)
+
+        # Instruction 3: Open drawer, grasp mug, pour into plate
         if "drawer" in task_text and ("pour" in task_text or "mug" in task_text):
             plan = [
                 {"action": "open_drawer", "arm": "left_arm", "object": "drawer", "target": None},
@@ -313,7 +352,17 @@ Return ONLY the raw JSON array. Do not include markdown code blocks or explanato
             ]
             return json.dumps(plan)
 
-        # Instruction 3: Pick and place plate
+        # Instruction 4: Direct mug pick and pour
+        if "mug" in task_text and "pour" in task_text:
+            plan = [
+                {"action": "approach", "arm": "right_arm", "object": "mug", "target": [0.22, -0.16, 0.465]},
+                {"action": "grasp", "arm": "right_arm", "object": "mug", "target": None},
+                {"action": "lift", "arm": "right_arm", "object": "mug", "target": None},
+                {"action": "pour", "arm": "right_arm", "object": "plate", "target": [0.25, 0.0, 0.435]},
+            ]
+            return json.dumps(plan)
+
+        # Instruction 5: Pick and place plate
         if "plate" in task_text and ("pick" in task_text or "place" in task_text):
             arm = "left_arm" if "left" in task_text or "arm a" in task_text else "right_arm"
             plan = [
@@ -333,8 +382,8 @@ Return ONLY the raw JSON array. Do not include markdown code blocks or explanato
         ]
         return json.dumps(plan)
 
-    def _call_openrouter_api(self, prompt: str) -> str:
-        """Call OpenRouter API endpoint using configured model."""
+    def _call_openrouter_api(self, prompt: str, camera_image: Optional[Any] = None) -> str:
+        """Call OpenRouter API endpoint using configured model with optional multimodal image input."""
         api_key = os.environ.get("OPENROUTER_API_KEY")
         if not api_key:
             return self._mock_llm_response(prompt)
@@ -346,6 +395,16 @@ Return ONLY the raw JSON array. Do not include markdown code blocks or explanato
             "HTTP-Referer": "https://github.com/TwinGuard",
             "X-Title": "TwinGuard Bimanual Manipulation",
         }
+
+        b64_img = encode_image_to_base64(camera_image)
+        if b64_img:
+            user_content = [
+                {"type": "text", "text": prompt},
+                {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{b64_img}"}},
+            ]
+        else:
+            user_content = prompt
+
         payload = {
             "model": self.model_name,
             "messages": [
@@ -353,7 +412,7 @@ Return ONLY the raw JSON array. Do not include markdown code blocks or explanato
                     "role": "system",
                     "content": "You are the autonomous task planner for TwinGuard. Return ONLY a valid raw JSON array of plan steps conforming to the schema.",
                 },
-                {"role": "user", "content": prompt},
+                {"role": "user", "content": user_content},
             ],
             "temperature": float(self.config.get("planning", {}).get("llm", {}).get("temperature", 0.0)),
             "max_tokens": int(self.config.get("planning", {}).get("llm", {}).get("max_tokens", 1024)),
@@ -367,16 +426,21 @@ Return ONLY the raw JSON array. Do not include markdown code blocks or explanato
         except Exception:
             return self._mock_llm_response(prompt)
 
-    def _call_gemini_api(self, prompt: str) -> str:
-        """Call Gemini REST API endpoint."""
+    def _call_gemini_api(self, prompt: str, camera_image: Optional[Any] = None) -> str:
+        """Call Gemini REST API endpoint with optional multimodal frame."""
         api_key = os.environ.get("GEMINI_API_KEY") or os.environ.get("GOOGLE_API_KEY")
         if not api_key:
             return self._mock_llm_response(prompt)
 
         url = f"https://generativelanguage.googleapis.com/v1beta/models/{self.model_name}:generateContent?key={api_key}"
         headers = {"Content-Type": "application/json"}
+        parts: List[Dict[str, Any]] = [{"text": prompt}]
+        b64_img = encode_image_to_base64(camera_image)
+        if b64_img:
+            parts.append({"inline_data": {"mime_type": "image/jpeg", "data": b64_img}})
+
         payload = {
-            "contents": [{"parts": [{"text": prompt}]}],
+            "contents": [{"parts": parts}],
             "generationConfig": {
                 "temperature": float(self.config.get("planning", {}).get("llm", {}).get("temperature", 0.0)),
                 "maxOutputTokens": int(self.config.get("planning", {}).get("llm", {}).get("max_tokens", 1024)),
@@ -423,6 +487,7 @@ Return ONLY the raw JSON array. Do not include markdown code blocks or explanato
         instruction: str,
         scene_state: str,
         visual_detections: Optional[List[Dict[str, Any]]] = None,
+        camera_image: Optional[Any] = None,
     ) -> List[PlanStep]:
         """Generate a validated plan of primitive steps for the given instruction.
 
@@ -433,6 +498,7 @@ Return ONLY the raw JSON array. Do not include markdown code blocks or explanato
             instruction: Natural language task description.
             scene_state: Compact text representation of the scene state.
             visual_detections: Optional neural object detections for visual multimodal grounding.
+            camera_image: Optional RGB frame from camera for multimodal vision-language model.
 
         Returns:
             List[PlanStep]: Validated sequence of primitive action steps.
@@ -441,7 +507,7 @@ Return ONLY the raw JSON array. Do not include markdown code blocks or explanato
         last_error: Optional[Exception] = None
 
         for attempt in range(self.max_retries + 1):
-            raw_output = self.call_llm(current_prompt)
+            raw_output = self.call_llm(current_prompt, camera_image=camera_image)
 
             try:
                 parsed = extract_json_from_text(raw_output)
@@ -473,6 +539,7 @@ def plan(
     instruction: str,
     scene_state: str,
     visual_detections: Optional[List[Dict[str, Any]]] = None,
+    camera_image: Optional[Any] = None,
     config_path: Optional[Union[str, Path]] = None,
     llm_caller: Optional[Callable] = None,
 ) -> List[PlanStep]:
@@ -482,6 +549,7 @@ def plan(
         instruction: Natural language task instruction.
         scene_state: Compact text representation of current scene state.
         visual_detections: Optional list of neural object detector outputs.
+        camera_image: Optional RGB frame from camera for multimodal reasoning.
         config_path: Optional path to YAML configuration.
         llm_caller: Optional custom LLM caller function for testing or overrides.
 
@@ -489,4 +557,9 @@ def plan(
         List[PlanStep]: Validated sequence of manipulation steps.
     """
     planner = LLMPlanner(config_path=config_path, llm_caller=llm_caller)
-    return planner.plan(instruction, scene_state, visual_detections=visual_detections)
+    return planner.plan(
+        instruction,
+        scene_state,
+        visual_detections=visual_detections,
+        camera_image=camera_image,
+    )

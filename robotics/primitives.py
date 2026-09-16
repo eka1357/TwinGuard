@@ -440,6 +440,59 @@ class MotionPrimitives:
         final_stable = self.sim.is_stable()
         return bool(held_tilt and final_stable)
 
+    def handover(
+        self,
+        source_arm: str,
+        dest_arm: Optional[str] = None,
+        object_name: str = "plate",
+    ) -> bool:
+        """Coordinated bimanual handover: source arm presents object, dest arm grasps, source releases.
+
+        Args:
+            source_arm: Arm currently holding the object.
+            dest_arm: Arm receiving the object (defaults to the opposite arm).
+            object_name: Name of the object being transferred ('plate', 'mug').
+
+        Returns:
+            bool: True if handover successfully completed with physics stability.
+        """
+        if source_arm not in self.sim.arm_names:
+            raise ValueError(f"Unknown source arm '{source_arm}'. Available: {self.sim.arm_names}")
+
+        if dest_arm is None:
+            dest_arm = "right_arm" if source_arm == "left_arm" else "left_arm"
+
+        if dest_arm not in self.sim.arm_names or dest_arm == source_arm:
+            raise ValueError(f"Invalid dest arm '{dest_arm}' for source '{source_arm}'")
+
+        # 1. Source arm moves object to central rendezvous pose in shared workspace
+        # Table center workspace at z=0.52m, x=0.22m reachable by both SO-101 arms
+        rendezvous_source = [0.22, 0.03 if source_arm == "left_arm" else -0.03, 0.52]
+        src_ok = self.transport(source_arm, rendezvous_source)
+        if not src_ok or not self.sim.is_stable():
+            return False
+
+        # 2. Destination arm opens gripper and approaches opposite side of rendezvous
+        self.release(dest_arm)
+        rendezvous_dest = [0.22, -0.03 if source_arm == "left_arm" else 0.03, 0.52]
+        dest_app_ok = self.approach(dest_arm, rendezvous_dest)
+        if not dest_app_ok or not self.sim.is_stable():
+            return False
+
+        # 3. Destination arm grasps the object (latches or grasps)
+        dest_grasp_ok = self.grasp(dest_arm, object_name=object_name)
+        if not dest_grasp_ok:
+            return False
+
+        # 4. Source arm releases gripper
+        self.release(source_arm)
+
+        # 5. Source arm safely retreats to neutral clearance pose to avoid collision
+        retreat_pose = [0.15, 0.15 if source_arm == "left_arm" else -0.15, 0.52]
+        self.approach(source_arm, retreat_pose)
+
+        return bool(self.sim.is_stable())
+
 
 # ------------------------------------------------------------------------------
 # Functional Module-Level API (Flexible signatures)
@@ -550,3 +603,20 @@ def pour(
         return MotionPrimitives(sim_inst).pour(arm_name, target_container=container, tilt_angle_deg=tilt_angle_deg, hold_steps=hold_steps)
     controller = MotionPrimitives(sim) if sim else MotionPrimitives()
     return controller.pour(arm, target_container=target_container, tilt_angle_deg=tilt_angle_deg, hold_steps=hold_steps)
+
+
+def handover(
+    source_arm: Union[str, TwinGuardSim],
+    dest_arm: Optional[str] = None,
+    object_name: str = "plate",
+    sim: Optional[TwinGuardSim] = None,
+) -> bool:
+    """Coordinated bimanual handover: source arm presents object, dest arm grasps, source releases."""
+    if isinstance(source_arm, TwinGuardSim):
+        sim_inst = source_arm
+        s_arm = str(dest_arm) if dest_arm else "left_arm"
+        d_arm = str(object_name) if object_name not in ("plate", "mug") else ("right_arm" if s_arm == "left_arm" else "left_arm")
+        obj = "plate" if object_name in ("plate", "right_arm", "left_arm") else object_name
+        return MotionPrimitives(sim_inst).handover(s_arm, dest_arm=d_arm, object_name=obj)
+    controller = MotionPrimitives(sim) if sim else MotionPrimitives()
+    return controller.handover(source_arm, dest_arm=dest_arm, object_name=object_name)

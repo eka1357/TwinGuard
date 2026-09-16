@@ -148,6 +148,10 @@ def execute_primitive_step(
         container_arg = target if target is not None else step.object
         return bool(primitives.pour(arm, target_container=container_arg))
 
+    elif action == "handover":
+        dest_arm = "right_arm" if arm == "left_arm" else "left_arm"
+        return bool(primitives.handover(arm, dest_arm=dest_arm, object_name=step.object))
+
     else:
         logger.error(f"Unrecognized action '{action}'")
         return False
@@ -220,15 +224,20 @@ def run_plan(
     primitives = MotionPrimitives(sim, config_path=config_path)
     verifier = SafetyVerifier(sim)
 
+    from safety.visual_guard import VisualGuard
+    visual_guard = VisualGuard()
+
     if verbose:
         logger.info(f"Starting execution for instruction: '{instruction}'")
 
     # 1. Perception: Read current scene state and visual camera observations
     initial_scene_state = format_scene_state(sim)
     visual_detections = None
+    cam_img = sim.get_camera_image("overview_cam")
+    visual_guard.set_reference_state(cam_img)
+
     try:
         from perception.object_detector import detect_objects
-        cam_img = sim.get_camera_image("overview_cam")
         det_result = detect_objects(cam_img)
         visual_detections = det_result.get("detections", [])
         if verbose and visual_detections:
@@ -237,11 +246,12 @@ def run_plan(
         if verbose:
             logger.debug(f"Camera detection skipped: {cam_err}")
 
-    # 2. Planning: Decompose instruction into validated primitive steps
+    # 2. Planning: Decompose instruction into validated primitive steps (multimodal)
     initial_steps: List[PlanStep] = plan(
         instruction,
         initial_scene_state,
         visual_detections=visual_detections,
+        camera_image=cam_img,
         config_path=config_path,
         llm_caller=llm_caller,
     )
@@ -266,11 +276,18 @@ def run_plan(
         # Safety & physical verification check
         verification = verifier.verify_step(step, primitive_returned=prim_ok, target=prim_target)
 
+        # Visual anomaly inspection (Anomalib-aligned)
+        post_step_img = sim.get_camera_image("overview_cam")
+        is_movement = step.action in ("transport", "pour", "release", "handover")
+        visual_check = visual_guard.check_visual_anomaly(post_step_img, expected_difference=is_movement)
+
         step_record: Dict[str, Any] = {
             "step_index": step_idx,
             "step": step.model_dump(),
             "initial_success": verification["success"],
             "initial_reason": verification["reason"],
+            "visual_anomaly": visual_check["anomaly_detected"],
+            "visual_score": visual_check["score"],
             "recovered": False,
             "recovery_attempts": 0,
             "recovery_log": [],
@@ -297,7 +314,7 @@ def run_plan(
                     det_result = detect_objects(cam_img)
                     rec_visual_detections = det_result.get("detections", [])
                 except Exception:
-                    pass
+                    cam_img = None
 
                 # Formulate recovery instruction with failure context
                 recovery_instruction = (
@@ -310,6 +327,7 @@ def run_plan(
                         recovery_instruction,
                         updated_scene_state,
                         visual_detections=rec_visual_detections,
+                        camera_image=cam_img,
                         config_path=config_path,
                         llm_caller=llm_caller,
                     )
