@@ -111,3 +111,13 @@ evaluation:
     num_iterations: 100               # Number of benchmark inference runs
     warmup_iterations: 10             # Warmup cycles before timing
     device: "CPU"                     # OpenVINO target device ('CPU', 'GPU', 'NPU')
+
+  runner:
+    num_seeds: 10                     # Number of randomized evaluation seeds
+    output_path: "evaluation/results.json"
+    forced_failure_seeds: [2, 7]      # Seeds where controlled grasp failures are injected
+    plate_xy_perturbation: 0.015      # +/- range for plate randomization (meters)
+    mug_xy_perturbation: 0.010        # +/- range for mug randomization (meters)
+    drawer_xy_perturbation: 0.008     # +/- range for drawer chest position (meters)
+    instruction: "Open the top drawer, pick up the plate with arm A, place it on the table, pick up the mug with arm B, pour water into the mug with arm A."
+

@@ -1,0 +1,1448 @@
+{
+  "summary": {
+    "total_seeds": 10,
+    "successful_seeds": 8,
+    "task_success_rate": 80.0,
+    "total_grasps": 20,
+    "initial_grasp_success_rate": 55.0,
+    "final_grasp_success_rate": 90.0,
+    "total_failures_encountered": 9,
+    "total_failures_recovered": 7,
+    "recovery_success_rate": 77.8,
+    "total_collisions": 0,
+    "avg_sim_time_s": 5.172,
+    "avg_wall_time_s": 1.393
+  },
+  "seeds": [
+    {
+      "seed": 0,
+      "instruction": "Open the top drawer, pick up the plate with arm A, place it on the table, pick up the mug with arm B, pour water into the mug with arm A.",
+      "success": true,
+      "total_steps": 10,
+      "steps_succeeded": 10,
+      "steps_failed": 0,
+      "sim_time": 5.234,
+      "wall_time": 1.393,
+      "forced_failure": false,
+      "recovery_attempts": 1,
+      "steps_recovered": 1,
+      "collisions": 0,
+      "start_positions": {
+        "plate": [
+          0.254,
+          -0.007,
+          0.435
+        ],
+        "mug": [
+          0.211,
+          -0.17,
+          0.465
+        ],
+        "drawer": [
+          0.263,
+          0.227,
+          0.46
+        ]
+      },
+      "steps": [
+        {
+          "step_index": 1,
+          "action": "open_drawer",
+          "arm": "left_arm",
+          "object": "drawer",
+          "initial_success": true,
+          "initial_reason": "open_drawer verified: drawer slid open along axis",
+          "recovered": false,
+          "recovery_attempts": 0,
+          "final_success": true
+        },
+        {
+          "step_index": 2,
+          "action": "approach",
+          "arm": "left_arm",
+          "object": "plate",
+          "initial_success": true,
+          "initial_reason": "Approach verified: end-effector reached target",
+          "recovered": false,
+          "recovery_attempts": 0,
+          "final_success": true
+        },
+        {
+          "step_index": 3,
+          "action": "grasp",
+          "arm": "left_arm",
+          "object": "plate",
+          "initial_success": true,
+          "initial_reason": "Grasp verified: gripper closed around 'plate'",
+          "recovered": false,
+          "recovery_attempts": 0,
+          "final_success": true
+        },
+        {
+          "step_index": 4,
+          "action": "lift",
+          "arm": "left_arm",
+          "object": "plate",
+          "initial_success": true,
+          "initial_reason": "Lift verified: vertical displacement executed stably",
+          "recovered": false,
+          "recovery_attempts": 0,
+          "final_success": true
+        },
+        {
+          "step_index": 5,
+          "action": "transport",
+          "arm": "left_arm",
+          "object": "table",
+          "initial_success": true,
+          "initial_reason": "Transport verified: target reached within tolerance",
+          "recovered": false,
+          "recovery_attempts": 0,
+          "final_success": true
+        },
+        {
+          "step_index": 6,
+          "action": "release",
+          "arm": "left_arm",
+          "object": "plate",
+          "initial_success": true,
+          "initial_reason": "Release verified: target reached within tolerance",
+          "recovered": false,
+          "recovery_attempts": 0,
+          "final_success": true
+        },
+        {
+          "step_index": 7,
+          "action": "approach",
+          "arm": "right_arm",
+          "object": "mug",
+          "initial_success": true,
+          "initial_reason": "Approach verified: end-effector reached target",
+          "recovered": false,
+          "recovery_attempts": 0,
+          "final_success": true
+        },
+        {
+          "step_index": 8,
+          "action": "grasp",
+          "arm": "right_arm",
+          "object": "mug",
+          "initial_success": false,
+          "initial_reason": "Grasp failed: object 'mug' freejoint is not within gripper grasp zone (distance 0.248m > threshold 0.12m)",
+          "recovered": true,
+          "recovery_attempts": 1,
+          "final_success": true
+        },
+        {
+          "step_index": 9,
+          "action": "lift",
+          "arm": "right_arm",
+          "object": "mug",
+          "initial_success": true,
+          "initial_reason": "Lift verified: vertical displacement executed stably",
+          "recovered": false,
+          "recovery_attempts": 0,
+          "final_success": true
+        },
+        {
+          "step_index": 10,
+          "action": "pour",
+          "arm": "right_arm",
+          "object": "plate",
+          "initial_success": true,
+          "initial_reason": "Pour verified: completed geometric tilt cycle above target container 'plate'",
+          "recovered": false,
+          "recovery_attempts": 0,
+          "final_success": true
+        }
+      ]
+    },
+    {
+      "seed": 1,
+      "instruction": "Open the top drawer, pick up the plate with arm A, place it on the table, pick up the mug with arm B, pour water into the mug with arm A.",
+      "success": true,
+      "total_steps": 10,
+      "steps_succeeded": 10,
+      "steps_failed": 0,
+      "sim_time": 4.49,
+      "wall_time": 1.271,
+      "forced_failure": false,
+      "recovery_attempts": 0,
+      "steps_recovered": 0,
+      "collisions": 0,
+      "start_positions": {
+        "plate": [
+          0.25,
+          0.014,
+          0.435
+        ],
+        "mug": [
+          0.213,
+          -0.151,
+          0.465
+        ],
+        "drawer": [
+          0.255,
+          0.219,
+          0.46
+        ]
+      },
+      "steps": [
+        {
+          "step_index": 1,
+          "action": "open_drawer",
+          "arm": "left_arm",
+          "object": "drawer",
+          "initial_success": true,
+          "initial_reason": "open_drawer verified: drawer slid open along axis",
+          "recovered": false,
+          "recovery_attempts": 0,
+          "final_success": true
+        },
+        {
+          "step_index": 2,
+          "action": "approach",
+          "arm": "left_arm",
+          "object": "plate",
+          "initial_success": true,
+          "initial_reason": "Approach verified: end-effector reached target",
+          "recovered": false,
+          "recovery_attempts": 0,
+          "final_success": true
+        },
+        {
+          "step_index": 3,
+          "action": "grasp",
+          "arm": "left_arm",
+          "object": "plate",
+          "initial_success": true,
+          "initial_reason": "Grasp verified: gripper closed around 'plate'",
+          "recovered": false,
+          "recovery_attempts": 0,
+          "final_success": true
+        },
+        {
+          "step_index": 4,
+          "action": "lift",
+          "arm": "left_arm",
+          "object": "plate",
+          "initial_success": true,
+          "initial_reason": "Lift verified: vertical displacement executed stably",
+          "recovered": false,
+          "recovery_attempts": 0,
+          "final_success": true
+        },
+        {
+          "step_index": 5,
+          "action": "transport",
+          "arm": "left_arm",
+          "object": "table",
+          "initial_success": true,
+          "initial_reason": "Transport verified: target reached within tolerance",
+          "recovered": false,
+          "recovery_attempts": 0,
+          "final_success": true
+        },
+        {
+          "step_index": 6,
+          "action": "release",
+          "arm": "left_arm",
+          "object": "plate",
+          "initial_success": true,
+          "initial_reason": "Release verified: target reached within tolerance",
+          "recovered": false,
+          "recovery_attempts": 0,
+          "final_success": true
+        },
+        {
+          "step_index": 7,
+          "action": "approach",
+          "arm": "right_arm",
+          "object": "mug",
+          "initial_success": true,
+          "initial_reason": "Approach verified: end-effector reached target",
+          "recovered": false,
+          "recovery_attempts": 0,
+          "final_success": true
+        },
+        {
+          "step_index": 8,
+          "action": "grasp",
+          "arm": "right_arm",
+          "object": "mug",
+          "initial_success": true,
+          "initial_reason": "Grasp verified: gripper closed around 'mug'",
+          "recovered": false,
+          "recovery_attempts": 0,
+          "final_success": true
+        },
+        {
+          "step_index": 9,
+          "action": "lift",
+          "arm": "right_arm",
+          "object": "mug",
+          "initial_success": true,
+          "initial_reason": "Lift verified: vertical displacement executed stably",
+          "recovered": false,
+          "recovery_attempts": 0,
+          "final_success": true
+        },
+        {
+          "step_index": 10,
+          "action": "pour",
+          "arm": "right_arm",
+          "object": "plate",
+          "initial_success": true,
+          "initial_reason": "Pour verified: completed geometric tilt cycle above target container 'plate'",
+          "recovered": false,
+          "recovery_attempts": 0,
+          "final_success": true
+        }
+      ]
+    },
+    {
+      "seed": 2,
+      "instruction": "Open the top drawer, pick up the plate with arm A, place it on the table, pick up the mug with arm B, pour water into the mug with arm A.",
+      "success": true,
+      "total_steps": 10,
+      "steps_succeeded": 10,
+      "steps_failed": 0,
+      "sim_time": 5.212,
+      "wall_time": 1.554,
+      "forced_failure": true,
+      "recovery_attempts": 2,
+      "steps_recovered": 2,
+      "collisions": 0,
+      "start_positions": {
+        "plate": [
+          0.243,
+          -0.006,
+          0.435
+        ],
+        "mug": [
+          0.226,
+          -0.168,
+          0.465
+        ],
+        "drawer": [
+          0.261,
+          0.224,
+          0.46
+        ]
+      },
+      "steps": [
+        {
+          "step_index": 1,
+          "action": "open_drawer",
+          "arm": "left_arm",
+          "object": "drawer",
+          "initial_success": true,
+          "initial_reason": "open_drawer verified: drawer slid open along axis",
+          "recovered": false,
+          "recovery_attempts": 0,
+          "final_success": true
+        },
+        {
+          "step_index": 2,
+          "action": "approach",
+          "arm": "left_arm",
+          "object": "plate",
+          "initial_success": true,
+          "initial_reason": "Approach verified: end-effector reached target",
+          "recovered": false,
+          "recovery_attempts": 0,
+          "final_success": true
+        },
+        {
+          "step_index": 3,
+          "action": "grasp",
+          "arm": "left_arm",
+          "object": "plate",
+          "initial_success": false,
+          "initial_reason": "Primitive execution 'grasp' reported failure or timeout",
+          "recovered": true,
+          "recovery_attempts": 1,
+          "final_success": true
+        },
+        {
+          "step_index": 4,
+          "action": "lift",
+          "arm": "left_arm",
+          "object": "plate",
+          "initial_success": true,
+          "initial_reason": "Lift verified: vertical displacement executed stably",
+          "recovered": false,
+          "recovery_attempts": 0,
+          "final_success": true
+        },
+        {
+          "step_index": 5,
+          "action": "transport",
+          "arm": "left_arm",
+          "object": "table",
+          "initial_success": true,
+          "initial_reason": "Transport verified: target reached within tolerance",
+          "recovered": false,
+          "recovery_attempts": 0,
+          "final_success": true
+        },
+        {
+          "step_index": 6,
+          "action": "release",
+          "arm": "left_arm",
+          "object": "plate",
+          "initial_success": true,
+          "initial_reason": "Release verified: target reached within tolerance",
+          "recovered": false,
+          "recovery_attempts": 0,
+          "final_success": true
+        },
+        {
+          "step_index": 7,
+          "action": "approach",
+          "arm": "right_arm",
+          "object": "mug",
+          "initial_success": true,
+          "initial_reason": "Approach verified: end-effector reached target",
+          "recovered": false,
+          "recovery_attempts": 0,
+          "final_success": true
+        },
+        {
+          "step_index": 8,
+          "action": "grasp",
+          "arm": "right_arm",
+          "object": "mug",
+          "initial_success": false,
+          "initial_reason": "Grasp failed: object 'mug' freejoint is not within gripper grasp zone (distance 0.124m > threshold 0.12m)",
+          "recovered": true,
+          "recovery_attempts": 1,
+          "final_success": true
+        },
+        {
+          "step_index": 9,
+          "action": "lift",
+          "arm": "right_arm",
+          "object": "mug",
+          "initial_success": true,
+          "initial_reason": "Lift verified: vertical displacement executed stably",
+          "recovered": false,
+          "recovery_attempts": 0,
+          "final_success": true
+        },
+        {
+          "step_index": 10,
+          "action": "pour",
+          "arm": "right_arm",
+          "object": "plate",
+          "initial_success": true,
+          "initial_reason": "Pour verified: completed geometric tilt cycle above target container 'plate'",
+          "recovered": false,
+          "recovery_attempts": 0,
+          "final_success": true
+        }
+      ]
+    },
+    {
+      "seed": 3,
+      "instruction": "Open the top drawer, pick up the plate with arm A, place it on the table, pick up the mug with arm B, pour water into the mug with arm A.",
+      "success": true,
+      "total_steps": 10,
+      "steps_succeeded": 10,
+      "steps_failed": 0,
+      "sim_time": 5.774,
+      "wall_time": 1.532,
+      "forced_failure": false,
+      "recovery_attempts": 2,
+      "steps_recovered": 1,
+      "collisions": 0,
+      "start_positions": {
+        "plate": [
+          0.238,
+          -0.008,
+          0.435
+        ],
+        "mug": [
+          0.226,
+          -0.158,
+          0.465
+        ],
+        "drawer": [
+          0.252,
+          0.219,
+          0.46
+        ]
+      },
+      "steps": [
+        {
+          "step_index": 1,
+          "action": "open_drawer",
+          "arm": "left_arm",
+          "object": "drawer",
+          "initial_success": true,
+          "initial_reason": "open_drawer verified: drawer slid open along axis",
+          "recovered": false,
+          "recovery_attempts": 0,
+          "final_success": true
+        },
+        {
+          "step_index": 2,
+          "action": "approach",
+          "arm": "left_arm",
+          "object": "plate",
+          "initial_success": true,
+          "initial_reason": "Approach verified: end-effector reached target",
+          "recovered": false,
+          "recovery_attempts": 0,
+          "final_success": true
+        },
+        {
+          "step_index": 3,
+          "action": "grasp",
+          "arm": "left_arm",
+          "object": "plate",
+          "initial_success": true,
+          "initial_reason": "Grasp verified: gripper closed around 'plate'",
+          "recovered": false,
+          "recovery_attempts": 0,
+          "final_success": true
+        },
+        {
+          "step_index": 4,
+          "action": "lift",
+          "arm": "left_arm",
+          "object": "plate",
+          "initial_success": true,
+          "initial_reason": "Lift verified: vertical displacement executed stably",
+          "recovered": false,
+          "recovery_attempts": 0,
+          "final_success": true
+        },
+        {
+          "step_index": 5,
+          "action": "transport",
+          "arm": "left_arm",
+          "object": "table",
+          "initial_success": true,
+          "initial_reason": "Transport verified: target reached within tolerance",
+          "recovered": false,
+          "recovery_attempts": 0,
+          "final_success": true
+        },
+        {
+          "step_index": 6,
+          "action": "release",
+          "arm": "left_arm",
+          "object": "plate",
+          "initial_success": true,
+          "initial_reason": "Release verified: target reached within tolerance",
+          "recovered": false,
+          "recovery_attempts": 0,
+          "final_success": true
+        },
+        {
+          "step_index": 7,
+          "action": "approach",
+          "arm": "right_arm",
+          "object": "mug",
+          "initial_success": true,
+          "initial_reason": "Approach verified: end-effector reached target",
+          "recovered": false,
+          "recovery_attempts": 0,
+          "final_success": true
+        },
+        {
+          "step_index": 8,
+          "action": "grasp",
+          "arm": "right_arm",
+          "object": "mug",
+          "initial_success": false,
+          "initial_reason": "Grasp failed: object 'mug' freejoint is not within gripper grasp zone (distance 0.172m > threshold 0.12m)",
+          "recovered": true,
+          "recovery_attempts": 2,
+          "final_success": true
+        },
+        {
+          "step_index": 9,
+          "action": "lift",
+          "arm": "right_arm",
+          "object": "mug",
+          "initial_success": true,
+          "initial_reason": "Lift verified: vertical displacement executed stably",
+          "recovered": false,
+          "recovery_attempts": 0,
+          "final_success": true
+        },
+        {
+          "step_index": 10,
+          "action": "pour",
+          "arm": "right_arm",
+          "object": "plate",
+          "initial_success": true,
+          "initial_reason": "Pour verified: completed geometric tilt cycle above target container 'plate'",
+          "recovered": false,
+          "recovery_attempts": 0,
+          "final_success": true
+        }
+      ]
+    },
+    {
+      "seed": 4,
+      "instruction": "Open the top drawer, pick up the plate with arm A, place it on the table, pick up the mug with arm B, pour water into the mug with arm A.",
+      "success": false,
+      "total_steps": 10,
+      "steps_succeeded": 9,
+      "steps_failed": 1,
+      "sim_time": 5.364,
+      "wall_time": 1.421,
+      "forced_failure": false,
+      "recovery_attempts": 2,
+      "steps_recovered": 0,
+      "collisions": 0,
+      "start_positions": {
+        "plate": [
+          0.263,
+          0.0,
+          0.435
+        ],
+        "mug": [
+          0.23,
+          -0.168,
+          0.465
+        ],
+        "drawer": [
+          0.259,
+          0.218,
+          0.46
+        ]
+      },
+      "steps": [
+        {
+          "step_index": 1,
+          "action": "open_drawer",
+          "arm": "left_arm",
+          "object": "drawer",
+          "initial_success": true,
+          "initial_reason": "open_drawer verified: drawer slid open along axis",
+          "recovered": false,
+          "recovery_attempts": 0,
+          "final_success": true
+        },
+        {
+          "step_index": 2,
+          "action": "approach",
+          "arm": "left_arm",
+          "object": "plate",
+          "initial_success": true,
+          "initial_reason": "Approach verified: end-effector reached target",
+          "recovered": false,
+          "recovery_attempts": 0,
+          "final_success": true
+        },
+        {
+          "step_index": 3,
+          "action": "grasp",
+          "arm": "left_arm",
+          "object": "plate",
+          "initial_success": true,
+          "initial_reason": "Grasp verified: gripper closed around 'plate'",
+          "recovered": false,
+          "recovery_attempts": 0,
+          "final_success": true
+        },
+        {
+          "step_index": 4,
+          "action": "lift",
+          "arm": "left_arm",
+          "object": "plate",
+          "initial_success": true,
+          "initial_reason": "Lift verified: vertical displacement executed stably",
+          "recovered": false,
+          "recovery_attempts": 0,
+          "final_success": true
+        },
+        {
+          "step_index": 5,
+          "action": "transport",
+          "arm": "left_arm",
+          "object": "table",
+          "initial_success": true,
+          "initial_reason": "Transport verified: target reached within tolerance",
+          "recovered": false,
+          "recovery_attempts": 0,
+          "final_success": true
+        },
+        {
+          "step_index": 6,
+          "action": "release",
+          "arm": "left_arm",
+          "object": "plate",
+          "initial_success": true,
+          "initial_reason": "Release verified: target reached within tolerance",
+          "recovered": false,
+          "recovery_attempts": 0,
+          "final_success": true
+        },
+        {
+          "step_index": 7,
+          "action": "approach",
+          "arm": "right_arm",
+          "object": "mug",
+          "initial_success": true,
+          "initial_reason": "Approach verified: end-effector reached target",
+          "recovered": false,
+          "recovery_attempts": 0,
+          "final_success": true
+        },
+        {
+          "step_index": 8,
+          "action": "grasp",
+          "arm": "right_arm",
+          "object": "mug",
+          "initial_success": false,
+          "initial_reason": "Grasp failed: object 'mug' freejoint is not within gripper grasp zone (distance 0.145m > threshold 0.12m)",
+          "recovered": false,
+          "recovery_attempts": 2,
+          "final_success": false
+        },
+        {
+          "step_index": 9,
+          "action": "lift",
+          "arm": "right_arm",
+          "object": "mug",
+          "initial_success": true,
+          "initial_reason": "Lift verified: vertical displacement executed stably",
+          "recovered": false,
+          "recovery_attempts": 0,
+          "final_success": true
+        },
+        {
+          "step_index": 10,
+          "action": "pour",
+          "arm": "right_arm",
+          "object": "plate",
+          "initial_success": true,
+          "initial_reason": "Pour verified: completed geometric tilt cycle above target container 'plate'",
+          "recovered": false,
+          "recovery_attempts": 0,
+          "final_success": true
+        }
+      ]
+    },
+    {
+      "seed": 5,
+      "instruction": "Open the top drawer, pick up the plate with arm A, place it on the table, pick up the mug with arm B, pour water into the mug with arm A.",
+      "success": false,
+      "total_steps": 10,
+      "steps_succeeded": 9,
+      "steps_failed": 1,
+      "sim_time": 5.362,
+      "wall_time": 1.411,
+      "forced_failure": false,
+      "recovery_attempts": 2,
+      "steps_recovered": 0,
+      "collisions": 0,
+      "start_positions": {
+        "plate": [
+          0.259,
+          0.009,
+          0.435
+        ],
+        "mug": [
+          0.22,
+          -0.164,
+          0.465
+        ],
+        "drawer": [
+          0.252,
+          0.218,
+          0.46
+        ]
+      },
+      "steps": [
+        {
+          "step_index": 1,
+          "action": "open_drawer",
+          "arm": "left_arm",
+          "object": "drawer",
+          "initial_success": true,
+          "initial_reason": "open_drawer verified: drawer slid open along axis",
+          "recovered": false,
+          "recovery_attempts": 0,
+          "final_success": true
+        },
+        {
+          "step_index": 2,
+          "action": "approach",
+          "arm": "left_arm",
+          "object": "plate",
+          "initial_success": true,
+          "initial_reason": "Approach verified: end-effector reached target",
+          "recovered": false,
+          "recovery_attempts": 0,
+          "final_success": true
+        },
+        {
+          "step_index": 3,
+          "action": "grasp",
+          "arm": "left_arm",
+          "object": "plate",
+          "initial_success": true,
+          "initial_reason": "Grasp verified: gripper closed around 'plate'",
+          "recovered": false,
+          "recovery_attempts": 0,
+          "final_success": true
+        },
+        {
+          "step_index": 4,
+          "action": "lift",
+          "arm": "left_arm",
+          "object": "plate",
+          "initial_success": true,
+          "initial_reason": "Lift verified: vertical displacement executed stably",
+          "recovered": false,
+          "recovery_attempts": 0,
+          "final_success": true
+        },
+        {
+          "step_index": 5,
+          "action": "transport",
+          "arm": "left_arm",
+          "object": "table",
+          "initial_success": true,
+          "initial_reason": "Transport verified: target reached within tolerance",
+          "recovered": false,
+          "recovery_attempts": 0,
+          "final_success": true
+        },
+        {
+          "step_index": 6,
+          "action": "release",
+          "arm": "left_arm",
+          "object": "plate",
+          "initial_success": true,
+          "initial_reason": "Release verified: target reached within tolerance",
+          "recovered": false,
+          "recovery_attempts": 0,
+          "final_success": true
+        },
+        {
+          "step_index": 7,
+          "action": "approach",
+          "arm": "right_arm",
+          "object": "mug",
+          "initial_success": true,
+          "initial_reason": "Approach verified: end-effector reached target",
+          "recovered": false,
+          "recovery_attempts": 0,
+          "final_success": true
+        },
+        {
+          "step_index": 8,
+          "action": "grasp",
+          "arm": "right_arm",
+          "object": "mug",
+          "initial_success": false,
+          "initial_reason": "Grasp failed: object 'mug' freejoint is not within gripper grasp zone (distance 0.131m > threshold 0.12m)",
+          "recovered": false,
+          "recovery_attempts": 2,
+          "final_success": false
+        },
+        {
+          "step_index": 9,
+          "action": "lift",
+          "arm": "right_arm",
+          "object": "mug",
+          "initial_success": true,
+          "initial_reason": "Lift verified: vertical displacement executed stably",
+          "recovered": false,
+          "recovery_attempts": 0,
+          "final_success": true
+        },
+        {
+          "step_index": 10,
+          "action": "pour",
+          "arm": "right_arm",
+          "object": "plate",
+          "initial_success": true,
+          "initial_reason": "Pour verified: completed geometric tilt cycle above target container 'plate'",
+          "recovered": false,
+          "recovery_attempts": 0,
+          "final_success": true
+        }
+      ]
+    },
+    {
+      "seed": 6,
+      "instruction": "Open the top drawer, pick up the plate with arm A, place it on the table, pick up the mug with arm B, pour water into the mug with arm A.",
+      "success": true,
+      "total_steps": 10,
+      "steps_succeeded": 10,
+      "steps_failed": 0,
+      "sim_time": 5.002,
+      "wall_time": 1.347,
+      "forced_failure": false,
+      "recovery_attempts": 1,
+      "steps_recovered": 1,
+      "collisions": 0,
+      "start_positions": {
+        "plate": [
+          0.251,
+          -0.005,
+          0.435
+        ],
+        "mug": [
+          0.217,
+          -0.163,
+          0.465
+        ],
+        "drawer": [
+          0.266,
+          0.222,
+          0.46
+        ]
+      },
+      "steps": [
+        {
+          "step_index": 1,
+          "action": "open_drawer",
+          "arm": "left_arm",
+          "object": "drawer",
+          "initial_success": true,
+          "initial_reason": "open_drawer verified: drawer slid open along axis",
+          "recovered": false,
+          "recovery_attempts": 0,
+          "final_success": true
+        },
+        {
+          "step_index": 2,
+          "action": "approach",
+          "arm": "left_arm",
+          "object": "plate",
+          "initial_success": true,
+          "initial_reason": "Approach verified: end-effector reached target",
+          "recovered": false,
+          "recovery_attempts": 0,
+          "final_success": true
+        },
+        {
+          "step_index": 3,
+          "action": "grasp",
+          "arm": "left_arm",
+          "object": "plate",
+          "initial_success": true,
+          "initial_reason": "Grasp verified: gripper closed around 'plate'",
+          "recovered": false,
+          "recovery_attempts": 0,
+          "final_success": true
+        },
+        {
+          "step_index": 4,
+          "action": "lift",
+          "arm": "left_arm",
+          "object": "plate",
+          "initial_success": true,
+          "initial_reason": "Lift verified: vertical displacement executed stably",
+          "recovered": false,
+          "recovery_attempts": 0,
+          "final_success": true
+        },
+        {
+          "step_index": 5,
+          "action": "transport",
+          "arm": "left_arm",
+          "object": "table",
+          "initial_success": true,
+          "initial_reason": "Transport verified: target reached within tolerance",
+          "recovered": false,
+          "recovery_attempts": 0,
+          "final_success": true
+        },
+        {
+          "step_index": 6,
+          "action": "release",
+          "arm": "left_arm",
+          "object": "plate",
+          "initial_success": true,
+          "initial_reason": "Release verified: target reached within tolerance",
+          "recovered": false,
+          "recovery_attempts": 0,
+          "final_success": true
+        },
+        {
+          "step_index": 7,
+          "action": "approach",
+          "arm": "right_arm",
+          "object": "mug",
+          "initial_success": true,
+          "initial_reason": "Approach verified: end-effector reached target",
+          "recovered": false,
+          "recovery_attempts": 0,
+          "final_success": true
+        },
+        {
+          "step_index": 8,
+          "action": "grasp",
+          "arm": "right_arm",
+          "object": "mug",
+          "initial_success": false,
+          "initial_reason": "Grasp failed: object 'mug' freejoint is not within gripper grasp zone (distance 0.160m > threshold 0.12m)",
+          "recovered": true,
+          "recovery_attempts": 1,
+          "final_success": true
+        },
+        {
+          "step_index": 9,
+          "action": "lift",
+          "arm": "right_arm",
+          "object": "mug",
+          "initial_success": true,
+          "initial_reason": "Lift verified: vertical displacement executed stably",
+          "recovered": false,
+          "recovery_attempts": 0,
+          "final_success": true
+        },
+        {
+          "step_index": 10,
+          "action": "pour",
+          "arm": "right_arm",
+          "object": "plate",
+          "initial_success": true,
+          "initial_reason": "Pour verified: completed geometric tilt cycle above target container 'plate'",
+          "recovered": false,
+          "recovery_attempts": 0,
+          "final_success": true
+        }
+      ]
+    },
+    {
+      "seed": 7,
+      "instruction": "Open the top drawer, pick up the plate with arm A, place it on the table, pick up the mug with arm B, pour water into the mug with arm A.",
+      "success": true,
+      "total_steps": 10,
+      "steps_succeeded": 10,
+      "steps_failed": 0,
+      "sim_time": 5.08,
+      "wall_time": 1.285,
+      "forced_failure": true,
+      "recovery_attempts": 2,
+      "steps_recovered": 1,
+      "collisions": 0,
+      "start_positions": {
+        "plate": [
+          0.254,
+          0.012,
+          0.435
+        ],
+        "mug": [
+          0.226,
+          -0.165,
+          0.465
+        ],
+        "drawer": [
+          0.257,
+          0.226,
+          0.46
+        ]
+      },
+      "steps": [
+        {
+          "step_index": 1,
+          "action": "open_drawer",
+          "arm": "left_arm",
+          "object": "drawer",
+          "initial_success": true,
+          "initial_reason": "open_drawer verified: drawer slid open along axis",
+          "recovered": false,
+          "recovery_attempts": 0,
+          "final_success": true
+        },
+        {
+          "step_index": 2,
+          "action": "approach",
+          "arm": "left_arm",
+          "object": "plate",
+          "initial_success": true,
+          "initial_reason": "Approach verified: end-effector reached target",
+          "recovered": false,
+          "recovery_attempts": 0,
+          "final_success": true
+        },
+        {
+          "step_index": 3,
+          "action": "grasp",
+          "arm": "left_arm",
+          "object": "plate",
+          "initial_success": true,
+          "initial_reason": "Grasp verified: gripper closed around 'plate'",
+          "recovered": false,
+          "recovery_attempts": 0,
+          "final_success": true
+        },
+        {
+          "step_index": 4,
+          "action": "lift",
+          "arm": "left_arm",
+          "object": "plate",
+          "initial_success": true,
+          "initial_reason": "Lift verified: vertical displacement executed stably",
+          "recovered": false,
+          "recovery_attempts": 0,
+          "final_success": true
+        },
+        {
+          "step_index": 5,
+          "action": "transport",
+          "arm": "left_arm",
+          "object": "table",
+          "initial_success": true,
+          "initial_reason": "Transport verified: target reached within tolerance",
+          "recovered": false,
+          "recovery_attempts": 0,
+          "final_success": true
+        },
+        {
+          "step_index": 6,
+          "action": "release",
+          "arm": "left_arm",
+          "object": "plate",
+          "initial_success": true,
+          "initial_reason": "Release verified: target reached within tolerance",
+          "recovered": false,
+          "recovery_attempts": 0,
+          "final_success": true
+        },
+        {
+          "step_index": 7,
+          "action": "approach",
+          "arm": "right_arm",
+          "object": "mug",
+          "initial_success": true,
+          "initial_reason": "Approach verified: end-effector reached target",
+          "recovered": false,
+          "recovery_attempts": 0,
+          "final_success": true
+        },
+        {
+          "step_index": 8,
+          "action": "grasp",
+          "arm": "right_arm",
+          "object": "mug",
+          "initial_success": false,
+          "initial_reason": "Primitive execution 'grasp' reported failure or timeout",
+          "recovered": true,
+          "recovery_attempts": 2,
+          "final_success": true
+        },
+        {
+          "step_index": 9,
+          "action": "lift",
+          "arm": "right_arm",
+          "object": "mug",
+          "initial_success": true,
+          "initial_reason": "Lift verified: vertical displacement executed stably",
+          "recovered": false,
+          "recovery_attempts": 0,
+          "final_success": true
+        },
+        {
+          "step_index": 10,
+          "action": "pour",
+          "arm": "right_arm",
+          "object": "plate",
+          "initial_success": true,
+          "initial_reason": "Pour verified: completed geometric tilt cycle above target container 'plate'",
+          "recovered": false,
+          "recovery_attempts": 0,
+          "final_success": true
+        }
+      ]
+    },
+    {
+      "seed": 8,
+      "instruction": "Open the top drawer, pick up the plate with arm A, place it on the table, pick up the mug with arm B, pour water into the mug with arm A.",
+      "success": true,
+      "total_steps": 10,
+      "steps_succeeded": 10,
+      "steps_failed": 0,
+      "sim_time": 5.648,
+      "wall_time": 1.542,
+      "forced_failure": false,
+      "recovery_attempts": 2,
+      "steps_recovered": 1,
+      "collisions": 0,
+      "start_positions": {
+        "plate": [
+          0.245,
+          0.015,
+          0.435
+        ],
+        "mug": [
+          0.216,
+          -0.154,
+          0.465
+        ],
+        "drawer": [
+          0.265,
+          0.218,
+          0.46
+        ]
+      },
+      "steps": [
+        {
+          "step_index": 1,
+          "action": "open_drawer",
+          "arm": "left_arm",
+          "object": "drawer",
+          "initial_success": true,
+          "initial_reason": "open_drawer verified: drawer slid open along axis",
+          "recovered": false,
+          "recovery_attempts": 0,
+          "final_success": true
+        },
+        {
+          "step_index": 2,
+          "action": "approach",
+          "arm": "left_arm",
+          "object": "plate",
+          "initial_success": true,
+          "initial_reason": "Approach verified: end-effector reached target",
+          "recovered": false,
+          "recovery_attempts": 0,
+          "final_success": true
+        },
+        {
+          "step_index": 3,
+          "action": "grasp",
+          "arm": "left_arm",
+          "object": "plate",
+          "initial_success": true,
+          "initial_reason": "Grasp verified: gripper closed around 'plate'",
+          "recovered": false,
+          "recovery_attempts": 0,
+          "final_success": true
+        },
+        {
+          "step_index": 4,
+          "action": "lift",
+          "arm": "left_arm",
+          "object": "plate",
+          "initial_success": true,
+          "initial_reason": "Lift verified: vertical displacement executed stably",
+          "recovered": false,
+          "recovery_attempts": 0,
+          "final_success": true
+        },
+        {
+          "step_index": 5,
+          "action": "transport",
+          "arm": "left_arm",
+          "object": "table",
+          "initial_success": true,
+          "initial_reason": "Transport verified: target reached within tolerance",
+          "recovered": false,
+          "recovery_attempts": 0,
+          "final_success": true
+        },
+        {
+          "step_index": 6,
+          "action": "release",
+          "arm": "left_arm",
+          "object": "plate",
+          "initial_success": true,
+          "initial_reason": "Release verified: target reached within tolerance",
+          "recovered": false,
+          "recovery_attempts": 0,
+          "final_success": true
+        },
+        {
+          "step_index": 7,
+          "action": "approach",
+          "arm": "right_arm",
+          "object": "mug",
+          "initial_success": true,
+          "initial_reason": "Approach verified: end-effector reached target",
+          "recovered": false,
+          "recovery_attempts": 0,
+          "final_success": true
+        },
+        {
+          "step_index": 8,
+          "action": "grasp",
+          "arm": "right_arm",
+          "object": "mug",
+          "initial_success": false,
+          "initial_reason": "Grasp failed: object 'mug' freejoint is not within gripper grasp zone (distance 0.148m > threshold 0.12m)",
+          "recovered": true,
+          "recovery_attempts": 2,
+          "final_success": true
+        },
+        {
+          "step_index": 9,
+          "action": "lift",
+          "arm": "right_arm",
+          "object": "mug",
+          "initial_success": true,
+          "initial_reason": "Lift verified: vertical displacement executed stably",
+          "recovered": false,
+          "recovery_attempts": 0,
+          "final_success": true
+        },
+        {
+          "step_index": 10,
+          "action": "pour",
+          "arm": "right_arm",
+          "object": "plate",
+          "initial_success": true,
+          "initial_reason": "Pour verified: completed geometric tilt cycle above target container 'plate'",
+          "recovered": false,
+          "recovery_attempts": 0,
+          "final_success": true
+        }
+      ]
+    },
+    {
+      "seed": 9,
+      "instruction": "Open the top drawer, pick up the plate with arm A, place it on the table, pick up the mug with arm B, pour water into the mug with arm A.",
+      "success": true,
+      "total_steps": 10,
+      "steps_succeeded": 10,
+      "steps_failed": 0,
+      "sim_time": 4.55,
+      "wall_time": 1.17,
+      "forced_failure": false,
+      "recovery_attempts": 0,
+      "steps_recovered": 0,
+      "collisions": 0,
+      "start_positions": {
+        "plate": [
+          0.261,
+          -0.006,
+          0.435
+        ],
+        "mug": [
+          0.222,
+          -0.154,
+          0.465
+        ],
+        "drawer": [
+          0.261,
+          0.227,
+          0.46
+        ]
+      },
+      "steps": [
+        {
+          "step_index": 1,
+          "action": "open_drawer",
+          "arm": "left_arm",
+          "object": "drawer",
+          "initial_success": true,
+          "initial_reason": "open_drawer verified: drawer slid open along axis",
+          "recovered": false,
+          "recovery_attempts": 0,
+          "final_success": true
+        },
+        {
+          "step_index": 2,
+          "action": "approach",
+          "arm": "left_arm",
+          "object": "plate",
+          "initial_success": true,
+          "initial_reason": "Approach verified: end-effector reached target",
+          "recovered": false,
+          "recovery_attempts": 0,
+          "final_success": true
+        },
+        {
+          "step_index": 3,
+          "action": "grasp",
+          "arm": "left_arm",
+          "object": "plate",
+          "initial_success": true,
+          "initial_reason": "Grasp verified: gripper closed around 'plate'",
+          "recovered": false,
+          "recovery_attempts": 0,
+          "final_success": true
+        },
+        {
+          "step_index": 4,
+          "action": "lift",
+          "arm": "left_arm",
+          "object": "plate",
+          "initial_success": true,
+          "initial_reason": "Lift verified: vertical displacement executed stably",
+          "recovered": false,
+          "recovery_attempts": 0,
+          "final_success": true
+        },
+        {
+          "step_index": 5,
+          "action": "transport",
+          "arm": "left_arm",
+          "object": "table",
+          "initial_success": true,
+          "initial_reason": "Transport verified: target reached within tolerance",
+          "recovered": false,
+          "recovery_attempts": 0,
+          "final_success": true
+        },
+        {
+          "step_index": 6,
+          "action": "release",
+          "arm": "left_arm",
+          "object": "plate",
+          "initial_success": true,
+          "initial_reason": "Release verified: target reached within tolerance",
+          "recovered": false,
+          "recovery_attempts": 0,
+          "final_success": true
+        },
+        {
+          "step_index": 7,
+          "action": "approach",
+          "arm": "right_arm",
+          "object": "mug",
+          "initial_success": true,
+          "initial_reason": "Approach verified: end-effector reached target",
+          "recovered": false,
+          "recovery_attempts": 0,
+          "final_success": true
+        },
+        {
+          "step_index": 8,
+          "action": "grasp",
+          "arm": "right_arm",
+          "object": "mug",
+          "initial_success": true,
+          "initial_reason": "Grasp verified: gripper closed around 'mug'",
+          "recovered": false,
+          "recovery_attempts": 0,
+          "final_success": true
+        },
+        {
+          "step_index": 9,
+          "action": "lift",
+          "arm": "right_arm",
+          "object": "mug",
+          "initial_success": true,
+          "initial_reason": "Lift verified: vertical displacement executed stably",
+          "recovered": false,
+          "recovery_attempts": 0,
+          "final_success": true
+        },
+        {
+          "step_index": 10,
+          "action": "pour",
+          "arm": "right_arm",
+          "object": "plate",
+          "initial_success": true,
+          "initial_reason": "Pour verified: completed geometric tilt cycle above target container 'plate'",
+          "recovered": false,
+          "recovery_attempts": 0,
+          "final_success": true
+        }
+      ]
+    }
+  ]
+}
