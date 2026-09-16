@@ -97,3 +97,11 @@ primitives:
   lift_default_height: 0.08         # default vertical lift distance in meters
   drawer_pull_distance: 0.06        # distance in meters to pull drawer handle
 
+planning:
+  llm:
+    model: "gemini-2.5-flash"         # Configurable LLM model identifier
+    provider: "mock"                  # Default provider ("mock", "gemini", "openai")
+    temperature: 0.0                  # Generation temperature
+    max_tokens: 1024                  # Max token generation limit
+    retry_on_validation_error: true   # Retry once if schema validation fails
+    max_retries: 1                    # Number of retries on validation failure

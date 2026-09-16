@@ -29,3 +29,4 @@ quality/reproducibility · 5 innovation
 - MJCF: TheRobotStudio/SO-ARM100 (Apache-2.0), instantiated twice for bimanual.
 - Action/obs schema: LeRobot bi_so101_follower convention (12-dim = 6 joints x 2 arms), SmolVLA.
 - No hardcoded paths/seeds/thresholds in code — everything in configs/*.yaml.
+- Note: This LLM-based planner is standing in for a trained VLA policy given solo/time constraints, and could be swapped later behind the same planner.py interface.
