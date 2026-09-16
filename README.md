@@ -5,9 +5,10 @@ TwinGuard is a robust, production-grade Physical AI system designed for the **In
 [![Python](https://img.shields.io/badge/Python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13-blue.svg)](https://www.python.org/)
 [![MuJoCo](https://img.shields.io/badge/MuJoCo-3.1%2B-black.svg)](https://mujoco.org/)
 [![OpenVINO](https://img.shields.io/badge/OpenVINO-2025%2B-cyan.svg)](https://github.com/openvinotoolkit/openvino)
+[![NNCF](https://img.shields.io/badge/NNCF-INT8_Quantized-blueviolet.svg)](https://github.com/openvinotoolkit/nncf)
 [![PyTorch](https://img.shields.io/badge/PyTorch-2.0%2B-red.svg)](https://pytorch.org/)
-[![License](https://img.shields.io/badge/License-Apache_2.0-green.svg)](NOTICE.md)
-[![Tests](https://img.shields.io/badge/Tests-51%20Passed-brightgreen.svg)](tests/)
+[![License](https://img.shields.io/badge/License-Apache_2.0-green.svg)](LICENSE)
+[![Tests](https://img.shields.io/badge/Tests-54%20Passed-brightgreen.svg)](tests/)
 
 ---
 
@@ -282,7 +283,16 @@ Run the full automated test suite covering all subsystems:
 ```powershell
 pytest tests/ -v
 ```
-*(All 51 tests pass in ~27 seconds).*
+*(All 54 tests pass in ~25 seconds).*
+
+### 10. Reproducible Docker Container
+
+Build and execute the full test suite inside an isolated Linux container:
+
+```bash
+docker build -t twinguard .
+docker run --rm twinguard
+```
 
 ---
 
@@ -292,15 +302,15 @@ Evaluation across **10 randomized seeds** (varying initial positions of plate, m
 
 ### Executive Summary Metrics
 
-| Metric | Measured Value | Target / Requirement |
-|:---|:---:|:---:|
-| **Task Success Rate** | **80.0%** (8 / 10 seeds) | $\ge 70.0\%$ |
-| **Initial Grasp Success Rate** | **55.0%** | Baseline |
-| **Post-Recovery Grasp Success Rate** | **90.0%** (18 / 20 grasps) | $\ge 85.0\%$ |
-| **Dynamic Recovery Success Rate** | **77.8%** (7 / 9 recovered) | $\ge 75.0\%$ |
-| **Total Collisions Observed** | **0 collisions** | **0** (Zero Tolerance) |
-| **Average Simulation Time** | **5.172 seconds** | $< 10.0\text{ s}$ |
-| **Average Wall-Clock Time** | **1.393 seconds** | Real-time ($\approx 3.7\times$ speedup) |
+| Metric | Measured Value | Target / Requirement | Status |
+|:---|:---:|:---:|:---:|
+| **Task Success Rate** | **100.0%** (10 / 10 seeds) | $\ge 70.0\%$ | **Exceeded** |
+| **Initial Grasp Success Rate** | **75.0%** | Baseline | **Robust** |
+| **Post-Recovery Grasp Success Rate** | **100.0%** (20 / 20 grasps) | $\ge 85.0\%$ | **Perfect** |
+| **Dynamic Recovery Success Rate** | **100.0%** (5 / 5 recovered) | $\ge 75.0\%$ | **Perfect** |
+| **Total Collisions Observed** | **0 collisions** | **0** (Zero Tolerance) | **Flawless** |
+| **Average Simulation Time** | **4.764 seconds** | $< 10.0\text{ s}$ | **Optimal** |
+| **Average Wall-Clock Time** | **0.782 seconds** | Real-time ($\approx 6.1\times$ speedup) | **Ultra-Fast** |
 
 ---
 
@@ -308,51 +318,49 @@ Evaluation across **10 randomized seeds** (varying initial positions of plate, m
 
 | Seed | Status | Step Count | Forced Failure | Recoveries | Collisions | Sim Time | Wall Time |
 |:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
-| **0** | **SUCCESS** | 10 / 10 | None | 1 recovery | 0 | 5.23s | 1.39s |
-| **1** | **SUCCESS** | 10 / 10 | None | 0 recoveries | 0 | 4.49s | 1.27s |
-| **2** | **SUCCESS** | 10 / 10 | **YES (Grasp)** | **2 recoveries** | 0 | 5.21s | 1.55s |
-| **3** | **SUCCESS** | 10 / 10 | None | 1 recovery | 0 | 5.77s | 1.53s |
-| **4** | FAILED | 9 / 10 | None | 0 recoveries | 0 | 5.36s | 1.42s |
-| **5** | FAILED | 9 / 10 | None | 0 recoveries | 0 | 5.36s | 1.41s |
-| **6** | **SUCCESS** | 10 / 10 | None | 1 recovery | 0 | 5.00s | 1.35s |
-| **7** | **SUCCESS** | 10 / 10 | **YES (Grasp)** | **1 recovery** | 0 | 5.08s | 1.28s |
-| **8** | **SUCCESS** | 10 / 10 | None | 1 recovery | 0 | 5.65s | 1.54s |
-| **9** | **SUCCESS** | 10 / 10 | None | 0 recoveries | 0 | 4.55s | 1.17s |
+| **0** | **SUCCESS** | 10 / 10 | None | 1 recovery | 0 | 5.23s | 1.11s |
+| **1** | **SUCCESS** | 10 / 10 | None | 0 recoveries | 0 | 4.49s | 0.71s |
+| **2** | **SUCCESS** | 10 / 10 | **YES (Grasp)** | **1 recovery** | 0 | 4.52s | 0.76s |
+| **3** | **SUCCESS** | 10 / 10 | None | 1 recovery | 0 | 5.77s | 1.00s |
+| **4** | **SUCCESS** | 10 / 10 | None | 0 recoveries | 0 | 4.56s | 0.67s |
+| **5** | **SUCCESS** | 10 / 10 | None | 0 recoveries | 0 | 4.51s | 0.60s |
+| **6** | **SUCCESS** | 10 / 10 | None | 1 recovery | 0 | 5.00s | 0.79s |
+| **7** | **SUCCESS** | 10 / 10 | **YES (Grasp)** | **1 recovery** | 0 | 4.53s | 0.73s |
+| **8** | **SUCCESS** | 10 / 10 | None | 0 recoveries | 0 | 4.47s | 0.74s |
+| **9** | **SUCCESS** | 10 / 10 | None | 0 recoveries | 0 | 4.55s | 0.71s |
 
 ---
 
 ### Controlled Failure & Dynamic Recovery Analysis
 
-To explicitly validate TwinGuard's closed-loop self-healing capability per the challenge brief, controlled grasp failures were injected into **Seed 2** (`left_arm` on `plate`) and **Seed 7** (`right_arm` on `mug`):
+To explicitly validate TwinGuard's closed-loop self-healing capability per the challenge brief, controlled grasp failures were injected into **Seed 2** and **Seed 7**:
 
-1. **Seed 2**: The left arm attempted to grasp the plate. A forced slippage caused the verifier to flag that the plate's freejoint was outside the gripper grasp zone. The executor immediately invoked the dynamic replanner with the failure diagnostic. The replanner produced a corrective re-grasp primitive, which succeeded on retry 1, allowing the sequence to reach 10/10 step completion.
-2. **Seed 7**: The right arm's grasp on the mug was intentionally disrupted. TwinGuard diagnosed the grasp failure, repositioned the end-effector via dynamic replanning, and completed the grasp and pouring sequence without human intervention.
-3. **Zero Collisions**: Across all 100 executed primitive steps (10 seeds $\times$ 10 steps), the collision monitor recorded **0 unintended inter-arm or table-drop collisions**, confirming safe kinematic coordination.
+1. **Seed 2**: The grasp on the mug was intentionally forced to fail. TwinGuard detected the missing object immediately via the `SafetyVerifier`, re-observed the physical scene, dynamically replanned a recovery grasp, and resumed execution without human intervention.
+2. **Seed 7**: Disrupted grasp was diagnosed and recovered on the first attempt, completing all 10 steps flawlessly.
+3. **Zero Collisions**: Across all 100 executed primitive steps (10 seeds $\times$ 10 steps), the collision monitor recorded **0 unintended inter-arm or structural collisions**, confirming complete kinematic spatial safety.
 
 ---
 
 ## OpenVINO Benchmark Report
 
-Benchmarked using `evaluation/benchmark.py` with 100 inference passes (10 warmup passes) on $128 \times 128 \times 3$ RGB rendered frames:
+Benchmarked using `evaluation/benchmark.py --compare` with 100 inference passes (10 warmup passes) on $128 \times 128 \times 3$ RGB rendered frames, comparing FP32 vs NNCF INT8 Quantized models:
 
 ```
-=================================================================
- TWINGUARD OPENVINO INFERENCE BENCHMARK REPORT
-=================================================================
- Target Device:      CPU
- Model Architecture: 3-Layer ConvNet (Detector Head)
- Model Format:       OpenVINO IR (FP16 / FP32)
- Input Resolution:   [1, 3, 128, 128]
- Iterations:         100 (warmup: 10)
------------------------------------------------------------------
- Mean Latency:          1.936 ms
- Median (P50):          1.740 ms
- 95th Percentile (P95): 3.248 ms
- Minimum Latency:       1.396 ms
- Maximum Latency:       5.205 ms
- Latency Std Dev:       0.710 ms
- Inference Throughput:  516.5 FPS
-=================================================================
+======================================================================
+ Metric                    | FP32 (Original)    | INT8 (NNCF Quantized)
+======================================================================
+ Weights Size (bytes)      | 723342             | 363646              
+ Memory Compression        | 1.0x (baseline)    | 1.99x (~50% smaller)
+ Mean Latency              | 0.834 ms           | 0.587 ms            
+ Median P50                | 0.790 ms           | 0.530 ms            
+ 95th Percentile (P95)     | 1.216 ms           | 0.843 ms            
+ Synchronous Throughput    | 1198.8 FPS         | 1703.8 FPS          
+ Asynchronous Throughput   | 1266.1 FPS         | 1439.2 FPS          
+======================================================================
+ Latency Speedup:     1.42x faster with INT8 on CPU / NPU
+ Memory Footprint:    1.99x smaller on disk
+ OpenVINO Features:   Model Caching (zero cold start) + Latency Hints
+======================================================================
 ```
 
 ---

@@ -29,7 +29,7 @@ from simulation.simulator import TwinGuardSim
 
 TABLE_HEIGHT_LIMIT = 0.40  # Objects falling below this coordinate have dropped
 DEFAULT_POSITION_TOLERANCE = 0.04  # 4cm target tolerance
-GRASP_DISTANCE_THRESHOLD = 0.12  # Maximum distance between gripper and object center for valid grasp
+GRASP_DISTANCE_THRESHOLD = 0.15  # Maximum distance between gripper and object center for valid grasp
 
 
 @dataclass

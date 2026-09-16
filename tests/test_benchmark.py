@@ -102,3 +102,20 @@ def test_benchmark_config_loader():
         assert cfg["num_iterations"] > 0
     if "device" in cfg:
         assert cfg["device"] in ("CPU", "GPU", "NPU")
+
+
+def test_openvino_int8_quantization_and_compare(tmp_path):
+    """Verify NNCF INT8 quantization and benchmark comparison engine."""
+    from evaluation.benchmark import compare_fp32_int8
+    from evaluation.openvino_export import DEFAULT_INT8_XML_PATH, export_to_openvino_int8
+
+    # Ensure INT8 files exist
+    assert DEFAULT_INT8_XML_PATH.exists()
+
+    # Compare metrics computation
+    res = compare_fp32_int8(device="CPU", num_iterations=5)
+    assert "fp32" in res
+    assert "int8" in res
+    assert res["compression_ratio"] >= 1.5
+    assert res["fp32"]["mean_latency_ms"] > 0.0
+    assert res["int8"]["mean_latency_ms"] > 0.0

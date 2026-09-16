@@ -5,4 +5,5 @@ pytest>=8.0.0
 pydantic>=2.0.0
 torch>=2.0.0
 openvino>=2025.0.0
+nncf>=3.0.0
 pillow>=10.0.0

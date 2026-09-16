@@ -294,3 +294,42 @@ def test_scene_state_perception_integration(sim):
     assert len(steps) > 0
     for s in steps:
         assert_valid_plan_step(s)
+
+
+def test_planner_visual_detections_grounding(scene_state_text):
+    """Verify visual detections from neural detector are grounded into LLM prompt."""
+    planner = LLMPlanner()
+    mock_detections = [
+        {"label": "mug", "confidence": 0.94, "box": [10, 20, 50, 60], "coords": [0.22, -0.16, 0.465]},
+        {"label": "plate", "confidence": 0.98, "box": [100, 110, 180, 190], "coords": [0.25, 0.0, 0.435]},
+    ]
+    prompt = planner.build_prompt(
+        instruction="Pick up the plate",
+        scene_state=scene_state_text,
+        visual_detections=mock_detections,
+    )
+
+    assert "VISUAL PERCEPTION (CAMERA DETECTIONS):" in prompt
+    assert "Detected 'mug': confidence=0.94" in prompt
+    assert "Detected 'plate': confidence=0.98" in prompt
+
+    # Generating a plan with visual detections returns valid steps
+    steps = planner.plan(
+        instruction="Pick up the plate with left arm and place it on the table",
+        scene_state=scene_state_text,
+        visual_detections=mock_detections,
+    )
+    assert len(steps) > 0
+    for s in steps:
+        assert_valid_plan_step(s)
+
+
+def test_planner_openrouter_fallback(scene_state_text):
+    """Verify openrouter provider falls back safely or processes prompt."""
+    planner = LLMPlanner()
+    planner.provider = "openrouter"
+    # Should execute without uncaught network exceptions, falling back to deterministic mock if needed
+    steps = planner.plan("Pick up the plate with left arm", scene_state_text)
+    assert len(steps) > 0
+    for s in steps:
+        assert_valid_plan_step(s)

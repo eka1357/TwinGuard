@@ -100,7 +100,7 @@ primitives:
 planning:
   llm:
     model: "gemini-2.5-flash"         # Configurable LLM model identifier
-    provider: "mock"                  # Default provider ("mock", "gemini", "openai")
+    provider: "mock"                  # Provider: "mock", "openrouter", "gemini", "openai"
     temperature: 0.0                  # Generation temperature
     max_tokens: 1024                  # Max token generation limit
     retry_on_validation_error: true   # Retry once if schema validation fails
@@ -111,6 +111,8 @@ evaluation:
     num_iterations: 100               # Number of benchmark inference runs
     warmup_iterations: 10             # Warmup cycles before timing
     device: "CPU"                     # OpenVINO target device ('CPU', 'GPU', 'NPU')
+    performance_hint: "LATENCY"       # OpenVINO hint: "LATENCY" or "THROUGHPUT"
+    enable_caching: true              # Model compilation caching on disk
 
   runner:
     num_seeds: 10                     # Number of randomized evaluation seeds

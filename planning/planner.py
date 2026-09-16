@@ -128,6 +128,29 @@ def validate_plan_data(parsed_data: Any) -> List[PlanStep]:
         raise ValueError(f"Expected JSON list or dict, got {type(parsed_data).__name__}")
 
 
+
+def _load_env_file(project_root: Optional[Path] = None) -> None:
+    """Load key-value pairs from .env file into os.environ if not already set."""
+    root = project_root or Path(__file__).resolve().parent.parent
+    env_path = root / ".env"
+    if env_path.is_file():
+        try:
+            with open(env_path, "r", encoding="utf-8") as f:
+                for line in f:
+                    line = line.strip()
+                    if line and not line.startswith("#") and "=" in line:
+                        k, v = line.split("=", 1)
+                        k, v = k.strip(), v.strip()
+                        if k and k not in os.environ:
+                            os.environ[k] = v
+        except Exception:
+            pass
+
+
+# Automatically load local .env credentials if available
+_load_env_file()
+
+
 class LLMPlanner:
     """Task planner coordinating LLM prompting, schema validation, and retry handling."""
 
@@ -168,14 +191,35 @@ class LLMPlanner:
         with open(self.config_path, "r", encoding="utf-8") as f:
             return yaml.safe_load(f) or {}
 
-    def build_prompt(self, instruction: str, scene_state: str) -> str:
-        """Construct the prompt guiding the LLM to output valid plan steps."""
+    def build_prompt(
+        self,
+        instruction: str,
+        scene_state: str,
+        visual_detections: Optional[List[Dict[str, Any]]] = None,
+    ) -> str:
+        """Construct the prompt guiding the LLM to output valid plan steps.
+
+        Args:
+            instruction: High-level natural language instruction.
+            scene_state: Compact text representation of the scene state.
+            visual_detections: Optional list of neural object detector outputs for visual grounding.
+        """
+        visual_section = ""
+        if visual_detections:
+            det_lines = ["\nVISUAL PERCEPTION (CAMERA DETECTIONS):"]
+            for det in visual_detections:
+                label = det.get("label", "object")
+                conf = det.get("confidence", 1.0)
+                box = det.get("box", det.get("bbox", []))
+                coords = det.get("coords", det.get("target", None))
+                det_lines.append(f"- Detected '{label}': confidence={conf:.2f}, bbox={box}, 3D_pos={coords}")
+            visual_section = "\n".join(det_lines) + "\n"
+
         prompt = f"""You are the task planner for TwinGuard, an autonomous bimanual robot manipulation system in MuJoCo.
 You decompose natural language instructions into sequential robot motion primitives.
 
 SCENE CONTEXT:
-{scene_state}
-
+{scene_state}{visual_section}
 ROBOT CONFIGURATION:
 - Available arms:
   * "left_arm" (referred to as "arm A" in high-level briefs)
@@ -221,6 +265,9 @@ Return ONLY the raw JSON array. Do not include markdown code blocks or explanato
 
         if self.provider == "mock":
             return self._mock_llm_response(prompt)
+
+        if self.provider in ("openrouter", "open_router"):
+            return self._call_openrouter_api(prompt)
 
         if self.provider == "gemini":
             return self._call_gemini_api(prompt)
@@ -286,6 +333,40 @@ Return ONLY the raw JSON array. Do not include markdown code blocks or explanato
         ]
         return json.dumps(plan)
 
+    def _call_openrouter_api(self, prompt: str) -> str:
+        """Call OpenRouter API endpoint using configured model."""
+        api_key = os.environ.get("OPENROUTER_API_KEY")
+        if not api_key:
+            return self._mock_llm_response(prompt)
+
+        url = "https://openrouter.ai/api/v1/chat/completions"
+        headers = {
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {api_key}",
+            "HTTP-Referer": "https://github.com/TwinGuard",
+            "X-Title": "TwinGuard Bimanual Manipulation",
+        }
+        payload = {
+            "model": self.model_name,
+            "messages": [
+                {
+                    "role": "system",
+                    "content": "You are the autonomous task planner for TwinGuard. Return ONLY a valid raw JSON array of plan steps conforming to the schema.",
+                },
+                {"role": "user", "content": prompt},
+            ],
+            "temperature": float(self.config.get("planning", {}).get("llm", {}).get("temperature", 0.0)),
+            "max_tokens": int(self.config.get("planning", {}).get("llm", {}).get("max_tokens", 1024)),
+        }
+
+        req = urllib.request.Request(url, data=json.dumps(payload).encode("utf-8"), headers=headers, method="POST")
+        try:
+            with urllib.request.urlopen(req, timeout=30) as resp:
+                data = json.loads(resp.read().decode("utf-8"))
+                return data["choices"][0]["message"]["content"]
+        except Exception:
+            return self._mock_llm_response(prompt)
+
     def _call_gemini_api(self, prompt: str) -> str:
         """Call Gemini REST API endpoint."""
         api_key = os.environ.get("GEMINI_API_KEY") or os.environ.get("GOOGLE_API_KEY")
@@ -337,7 +418,12 @@ Return ONLY the raw JSON array. Do not include markdown code blocks or explanato
         except Exception:
             return self._mock_llm_response(prompt)
 
-    def plan(self, instruction: str, scene_state: str) -> List[PlanStep]:
+    def plan(
+        self,
+        instruction: str,
+        scene_state: str,
+        visual_detections: Optional[List[Dict[str, Any]]] = None,
+    ) -> List[PlanStep]:
         """Generate a validated plan of primitive steps for the given instruction.
 
         If schema validation fails, retries once with the validation error appended
@@ -346,11 +432,12 @@ Return ONLY the raw JSON array. Do not include markdown code blocks or explanato
         Args:
             instruction: Natural language task description.
             scene_state: Compact text representation of the scene state.
+            visual_detections: Optional neural object detections for visual multimodal grounding.
 
         Returns:
             List[PlanStep]: Validated sequence of primitive action steps.
         """
-        current_prompt = self.build_prompt(instruction, scene_state)
+        current_prompt = self.build_prompt(instruction, scene_state, visual_detections=visual_detections)
         last_error: Optional[Exception] = None
 
         for attempt in range(self.max_retries + 1):
@@ -385,6 +472,7 @@ Return ONLY the raw JSON array. Do not include markdown code blocks or explanato
 def plan(
     instruction: str,
     scene_state: str,
+    visual_detections: Optional[List[Dict[str, Any]]] = None,
     config_path: Optional[Union[str, Path]] = None,
     llm_caller: Optional[Callable] = None,
 ) -> List[PlanStep]:
@@ -393,6 +481,7 @@ def plan(
     Args:
         instruction: Natural language task instruction.
         scene_state: Compact text representation of current scene state.
+        visual_detections: Optional list of neural object detector outputs.
         config_path: Optional path to YAML configuration.
         llm_caller: Optional custom LLM caller function for testing or overrides.
 
@@ -400,4 +489,4 @@ def plan(
         List[PlanStep]: Validated sequence of manipulation steps.
     """
     planner = LLMPlanner(config_path=config_path, llm_caller=llm_caller)
-    return planner.plan(instruction, scene_state)
+    return planner.plan(instruction, scene_state, visual_detections=visual_detections)

@@ -91,7 +91,10 @@ def resolve_step_target(sim: TwinGuardSim, step: PlanStep) -> Optional[List[floa
             if bid != -1:
                 pos = list(sim.data.xpos[bid])
                 if action in ("approach", "transport"):
-                    pos[2] = max(pos[2] + 0.04, 0.50)
+                    if candidate == "mug":
+                        pos[2] = max(pos[2] + 0.02, 0.485)
+                    else:
+                        pos[2] = max(pos[2] + 0.04, 0.50)
                 elif action == "pour":
                     pos[2] = max(pos[2] + 0.10, 0.52)
                     if arm == "left_arm" and pos[1] < -0.05:
@@ -175,15 +178,25 @@ def run_plan(
     if verbose:
         logger.info(f"Starting execution for instruction: '{instruction}'")
 
-    # 1. Perception: Read current scene state
+    # 1. Perception: Read current scene state and visual camera observations
     initial_scene_state = format_scene_state(sim)
-    if verbose:
-        logger.info("Perception extracted initial scene state.")
+    visual_detections = None
+    try:
+        from perception.object_detector import detect_objects
+        cam_img = sim.get_camera_image("overview_cam")
+        det_result = detect_objects(cam_img)
+        visual_detections = det_result.get("detections", [])
+        if verbose and visual_detections:
+            logger.info(f"Neural perception detected {len(visual_detections)} objects from overview camera.")
+    except Exception as cam_err:
+        if verbose:
+            logger.debug(f"Camera detection skipped: {cam_err}")
 
     # 2. Planning: Decompose instruction into validated primitive steps
     initial_steps: List[PlanStep] = plan(
         instruction,
         initial_scene_state,
+        visual_detections=visual_detections,
         config_path=config_path,
         llm_caller=llm_caller,
     )
@@ -230,8 +243,16 @@ def run_plan(
             for attempt in range(1, max_recovery_attempts + 1):
                 step_record["recovery_attempts"] = attempt
 
-                # Re-observe scene via perception
+                # Re-observe scene via perception and camera
                 updated_scene_state = format_scene_state(sim)
+                rec_visual_detections = None
+                try:
+                    from perception.object_detector import detect_objects
+                    cam_img = sim.get_camera_image("overview_cam")
+                    det_result = detect_objects(cam_img)
+                    rec_visual_detections = det_result.get("detections", [])
+                except Exception:
+                    pass
 
                 # Formulate recovery instruction with failure context
                 recovery_instruction = (
@@ -243,6 +264,7 @@ def run_plan(
                     recovery_steps = plan(
                         recovery_instruction,
                         updated_scene_state,
+                        visual_detections=rec_visual_detections,
                         config_path=config_path,
                         llm_caller=llm_caller,
                     )
