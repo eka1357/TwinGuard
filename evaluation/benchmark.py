@@ -103,9 +103,10 @@ def run_benchmark(
     # Query available devices
     available_devices = core.available_devices
     requested_device = target_device
+    is_compound = any(target_device.upper().startswith(p) for p in ("AUTO", "MULTI", "HETERO"))
 
     # Graceful hardware fallback for Intel Core Ultra accelerators on non-Intel host
-    if target_device not in available_devices:
+    if not is_compound and target_device not in available_devices:
         if verbose:
             print(f"[INFO] OpenVINO available devices: {available_devices}")
             print(f"[INFO] Target accelerator '{target_device}' not available on current host.")
@@ -113,7 +114,7 @@ def run_benchmark(
         target_device = "CPU"
     elif verbose:
         print(f"[INFO] OpenVINO available devices: {available_devices}")
-        print(f"[INFO] Selected target device: '{target_device}'")
+        print(f"[INFO] Selected target device: '{target_device}' (Intel XPU Target)")
 
     # Configure Model Caching to eliminate cold-start compile latency
     if enable_caching:

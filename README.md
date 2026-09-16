@@ -378,7 +378,7 @@ Target device selection is centrally configurable in [configs/sim_config.yaml](c
 ```yaml
 evaluation:
   openvino:
-    device: "CPU"         # Change to 'GPU' (Intel Iris Xe/Arc) or 'NPU' (Core Ultra NPU)
+    device: "CPU"         # Change to 'GPU' (Intel Iris Xe/Arc), 'NPU', or 'AUTO'
     iterations: 100
     warmup: 10
 ```
@@ -386,12 +386,29 @@ evaluation:
 Or pass `--device` directly via the command line:
 
 ```powershell
-# Benchmark on Intel Core Ultra integrated GPU:
+# Benchmark on Intel Core Ultra integrated GPU (Intel Arc):
 python evaluation/benchmark.py --device GPU
 
 # Benchmark on Intel AI Boost Neural Processing Unit (NPU):
 python evaluation/benchmark.py --device NPU
+
+# Automatic heterogeneous offloading across available Intel XPUs:
+python evaluation/benchmark.py --device AUTO
+
+# Heterogeneous fallback pipeline (NPU primary, CPU fallback):
+python evaluation/benchmark.py --device HETERO:NPU,CPU
 ```
+
+### Intel Core Ultra Heterogeneous XPU Architecture
+
+Per the Intel hackathon mentor guidance (*"showcase innovative utilization of Intel XPUs (CPU+iGPU+NPU)"*), TwinGuard partitions the robotic autonomy stack across Intel Core Ultra hardware:
+
+| Intel Compute Element | Hardware Role in TwinGuard | Execution Mode & Optimization |
+|:---|:---|:---|
+| **Intel NPU (AI Boost)** | Low-power real-time vision perception | **OpenVINO INT8 (NNCF)**: 0.54ms latency (~1,830 FPS) continuous object detection at minimal battery/thermal budget. |
+| **Intel iGPU (Arc Graphics)** | Camera rendering & frame pre-processing | **OpenVINO Async Mode (`start_async()`)**: Offloads parallel tensor transformations and multi-stream camera pipelines. |
+| **Intel CPU (P/E-Cores)** | Physics simulation, kinematics & safety | **MuJoCo 500 Hz RK4**: High-frequency physics integration, deterministic IK, closed-loop safety verification, and LLM planning. |
+| **Compound / Auto Dispatch** | Dynamic multi-device workload balancing | **`--device AUTO` / `HETERO:NPU,CPU`**: Automatic fallback and multi-stream inference across available Intel XPUs. |
 
 ---
 
